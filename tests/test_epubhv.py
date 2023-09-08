@@ -26,9 +26,9 @@ def test_make_files_dict():
     b = EPUBHV("tests/test_epub/animal_farm.epub")
     b.extract_one_epub_to_dir()
     d = dict(_make_epub_files_dict(".epub_temp_dir/animal_farm"))
-    assert [".html", ".css", ".xhtml", "", ".opf", ".ncx", ".jpg", ".xml"] == list(
-        d.keys()
-    )
+    assert sorted(
+        [".html", ".css", ".xhtml", "", ".opf", ".ncx", ".jpg", ".xml"]
+    ) == sorted(list(d.keys()))
     assert 19 == len(d.get(".html", 0))
     shutil.rmtree(".epub_temp_dir")
 
