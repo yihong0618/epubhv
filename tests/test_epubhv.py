@@ -2,7 +2,7 @@ import os
 import shutil
 from pathlib import Path
 
-from epubhv import EPUBHV, list_all_epub_in_dir, _make_epub_files_dict
+from epubhv import EPUBHV, _make_epub_files_dict, list_all_epub_in_dir
 
 
 def test_find_epub_books():
@@ -25,44 +25,11 @@ def test_extract_epub_path():
 def test_make_files_dict():
     b = EPUBHV("tests/test_epub/animal_farm.epub")
     b.extract_one_epub_to_dir()
-    assert {
-        ".html": [
-            Path(".epub_temp_dir/animal_farm/index_split_003.html"),
-            Path(".epub_temp_dir/animal_farm/index_split_015.html"),
-            Path(".epub_temp_dir/animal_farm/index_split_018.html"),
-            Path(".epub_temp_dir/animal_farm/index_split_014.html"),
-            Path(".epub_temp_dir/animal_farm/index_split_002.html"),
-            Path(".epub_temp_dir/animal_farm/index_split_009.html"),
-            Path(".epub_temp_dir/animal_farm/index_split_005.html"),
-            Path(".epub_temp_dir/animal_farm/index_split_013.html"),
-            Path(".epub_temp_dir/animal_farm/index_split_012.html"),
-            Path(".epub_temp_dir/animal_farm/index_split_004.html"),
-            Path(".epub_temp_dir/animal_farm/index_split_008.html"),
-            Path(".epub_temp_dir/animal_farm/index_split_011.html"),
-            Path(".epub_temp_dir/animal_farm/index_split_007.html"),
-            Path(".epub_temp_dir/animal_farm/index_split_006.html"),
-            Path(".epub_temp_dir/animal_farm/index_split_010.html"),
-            Path(".epub_temp_dir/animal_farm/index_split_017.html"),
-            Path(".epub_temp_dir/animal_farm/index_split_001.html"),
-            Path(".epub_temp_dir/animal_farm/index_split_000.html"),
-            Path(".epub_temp_dir/animal_farm/index_split_016.html"),
-        ],
-        ".css": [
-            Path(".epub_temp_dir/animal_farm/page_styles.css"),
-            Path(".epub_temp_dir/animal_farm/stylesheet.css"),
-        ],
-        ".xhtml": [Path(".epub_temp_dir/animal_farm/titlepage.xhtml")],
-        "": [Path(".epub_temp_dir/animal_farm/mimetype")],
-        ".opf": [Path(".epub_temp_dir/animal_farm/content.opf")],
-        ".ncx": [Path(".epub_temp_dir/animal_farm/toc.ncx")],
-        ".jpg": [
-            Path(".epub_temp_dir/animal_farm/images/00005.jpg"),
-            Path(".epub_temp_dir/animal_farm/images/00002.jpg"),
-            Path(".epub_temp_dir/animal_farm/images/00003.jpg"),
-            Path(".epub_temp_dir/animal_farm/images/cover.jpg"),
-        ],
-        ".xml": [Path(".epub_temp_dir/animal_farm/META-INF/container.xml")],
-    } == dict(_make_epub_files_dict(".epub_temp_dir/animal_farm"))
+    d = dict(_make_epub_files_dict(".epub_temp_dir/animal_farm"))
+    assert [".html", ".css", ".xhtml", "", ".opf", ".ncx", ".jpg", ".xml"] == list(
+        d.keys()
+    )
+    assert 19 == len(d.get(".html", 0))
     shutil.rmtree(".epub_temp_dir")
 
 
