@@ -160,3 +160,5 @@ cython_debug/
 #.idea/
 
 .epub_temp_dir/*
+*.epub
+.DS_Store
