@@ -64,8 +64,10 @@ class EPUBHV:
         self.opf_file = None
         if convert_to is not None:
             self.converter = opencc.OpenCC(convert_to)
+            self.convert_to = convert_to
         else:
             self.converter = None
+            self.convert_to = None
 
     def extract_one_epub_to_dir(self):
         assert self.epub_file.suffix == ".epub", f"{self.epub_file} Must be epub file"
@@ -269,12 +271,14 @@ html {
                 file.write(soup.prettify())
 
     def pack(self, method="to_vertical"):
+        lang = 'original'
+        if self.convert_to is not None:
+            lang = self.convert_to
         if method == 'to_vertical':
-            book_name_v = f"{self.book_name}-v.epub"
+            book_name_v = f"{self.book_name}-v-{lang}.epub"
         else:
-            book_name_v = f"{self.book_name}-h.epub"
+            book_name_v = f"{self.book_name}-h-{lang}.epub"
         
-        book_name_v = f"{self.book_name}-h.epub"
         shutil.make_archive(book_name_v, "zip", self.book_path)
         os.rename(book_name_v + ".zip", book_name_v)
         shutil.rmtree(self.book_path)
