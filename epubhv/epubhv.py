@@ -12,6 +12,8 @@ import logging
 import cssutils
 from bs4 import BeautifulSoup as bs
 
+import opencc
+
 cssutils.log.setLevel(logging.CRITICAL)
 
 WRITING_KEY_LIST = ["writing-mode", "-webkit-writing-mode", "-epub-writing-mode"]
@@ -53,13 +55,17 @@ def load_opf_meta_data(opf_file):
 
 
 class EPUBHV:
-    def __init__(self, file_name):
+    def __init__(self, file_name, convert_to=None):
         self.epub_file = Path(file_name)
         self.has_css_file = False
         self.files_dict = {}
         self.book_path = None
         self.book_name = None
         self.opf_file = None
+        if convert_to is not None:
+            self.converter = opencc.OpenCC(convert_to)
+        else:
+            self.converter = None
 
     def extract_one_epub_to_dir(self):
         assert self.epub_file.suffix == ".epub", f"{self.epub_file} Must be epub file"
@@ -187,10 +193,11 @@ html {
             ):
                 self._add_stylesheet_to_html(f, V_STYLE_LINE)
 
-        book_name_v = f"{self.book_name}-v.epub"
-        shutil.make_archive(book_name_v, "zip", self.book_path)
-        os.rename(book_name_v + ".zip", book_name_v)
-        shutil.rmtree(self.book_path)
+        # self.convert()
+        # book_name_v = f"{self.book_name}-v.epub"
+        # shutil.make_archive(book_name_v, "zip", self.book_path)
+        # os.rename(book_name_v + ".zip", book_name_v)
+        # shutil.rmtree(self.book_path)
 
     def change_epub_to_horizontal(self):
         """
@@ -233,7 +240,40 @@ html {
                 css_style = p.cssText
                 with open(css, "wb") as f:
                     f.write(css_style)
+        # self.convert()
+        # book_name_v = f"{self.book_name}-h.epub"
+        # shutil.make_archive(book_name_v, "zip", self.book_path)
+        # os.rename(book_name_v + ".zip", book_name_v)
+        # shutil.rmtree(self.book_path)
 
+    def convert(self):
+        if self.converter is None:
+            return
+
+        for html_file in self.files_dict.get(".html", []) + self.files_dict.get('.xhtml', []) + self.files_dict.get('.htm', []):
+            with open(html_file, "r") as f:
+                content = f.read()
+            soup = bs(content, 'html.parser')
+
+            html_element = soup.find('html')
+            text_elements = html_element.find_all(text=True)
+
+            for element in text_elements:
+                old_text = element.string
+                if old_text is not None:
+                    new_text = self.converter.convert(old_text)
+                    element.string.replace_with(new_text)
+            html_element.replace_with(html_element)
+
+            with open(html_file, 'w') as file:
+                file.write(soup.prettify())
+
+    def pack(self, method="to_vertical"):
+        if method == 'to_vertical':
+            book_name_v = f"{self.book_name}-v.epub"
+        else:
+            book_name_v = f"{self.book_name}-h.epub"
+        
         book_name_v = f"{self.book_name}-h.epub"
         shutil.make_archive(book_name_v, "zip", self.book_path)
         os.rename(book_name_v + ".zip", book_name_v)
@@ -252,3 +292,6 @@ html {
             self.change_epub_to_horizontal()
         else:
             raise Exception("Only support epub to vertical or horizontal for now")
+        
+        self.convert()
+        self.pack(method=method)
