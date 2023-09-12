@@ -194,12 +194,6 @@ html {
             ):
                 self._add_stylesheet_to_html(f, V_STYLE_LINE)
 
-        # self.convert()
-        # book_name_v = f"{self.book_name}-v.epub"
-        # shutil.make_archive(book_name_v, "zip", self.book_path)
-        # os.rename(book_name_v + ".zip", book_name_v)
-        # shutil.rmtree(self.book_path)
-
     def change_epub_to_horizontal(self):
         """
         steps:
@@ -241,11 +235,6 @@ html {
                 css_style = p.cssText
                 with open(css, "wb") as f:
                     f.write(css_style)
-        # self.convert()
-        # book_name_v = f"{self.book_name}-h.epub"
-        # shutil.make_archive(book_name_v, "zip", self.book_path)
-        # os.rename(book_name_v + ".zip", book_name_v)
-        # shutil.rmtree(self.book_path)
 
     def convert(self):
         if self.converter is None:
