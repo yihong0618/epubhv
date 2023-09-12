@@ -18,10 +18,10 @@ epubhv a.epub # will generate a file a-v.epub that is vertical
 # or
 epubhv b.epub --h # will generate a file b-h.epub that is horizontal
 
-# if you want also translate from `简体 -> 繁体`
+# if you also want to translate from `简体 -> 繁体`
 epubhv c.epub --convert s2t
 
-# if you want also translate from `繁体 -> 简体`
+# if you also want to translate from `繁体 -> 简体`
 epubhv d.epub --h --convert t2s
 
 # or a folder contains butch of epubs
