@@ -1,6 +1,6 @@
 # epubhv
-make your epub books vertical or horizontal.
 
+make your epub books vertical or horizontal.
 
 ## Install
 
@@ -15,10 +15,16 @@ cd epubhv && pip install .
 
 ```console
 epubhv a.epub # will generate a file a-v.epub that is vertical
-or
+# or
 epubhv b.epub --h # will generate a file b-h.epub that is horizontal
-or a folder contains butch of epubs
 
+# if you want also translate from `简体 -> 繁体`
+epubhv c.epub --convert s2t
+
+# if you want also translate from `繁体 -> 简体`
+epubhv d.epub --h --convert t2s
+
+# or a folder contains butch of epubs
 epubhv tests/test_epub # will generate all epub files to epub-v
 
 ```
@@ -26,6 +32,7 @@ epubhv tests/test_epub # will generate all epub files to epub-v
 ## Thanks
 
 - @[tommyku](https://github.com/tommyku) --> [How to make EPUB ebooks with vertical layout?](https://blog.tommyku.com/blog/how-to-make-epubs-with-vertical-layout/)
+- @[jiak94](https://github.com/jiak94) support OpenCC
 
 ## Appreciation
 
