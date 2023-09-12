@@ -2,17 +2,16 @@
 Follow these steps to change epub books to vertical or horizontal.
 
 """
+import logging
 import os
 import shutil
 import zipfile
 from collections import defaultdict
 from pathlib import Path
-import logging
 
 import cssutils
-from bs4 import BeautifulSoup as bs
-
 import opencc
+from bs4 import BeautifulSoup as bs
 
 cssutils.log.setLevel(logging.CRITICAL)
 
@@ -252,13 +251,17 @@ html {
         if self.converter is None:
             return
 
-        for html_file in self.files_dict.get(".html", []) + self.files_dict.get('.xhtml', []) + self.files_dict.get('.htm', []):
+        for html_file in (
+            self.files_dict.get(".html", [])
+            + self.files_dict.get(".xhtml", [])
+            + self.files_dict.get(".htm", [])
+        ):
             with open(html_file, "r") as f:
                 content = f.read()
-            soup = bs(content, 'html.parser')
+            soup = bs(content, "html.parser")
 
-            html_element = soup.find('html')
-            text_elements = html_element.find_all(text=True)
+            html_element = soup.find("html")
+            text_elements = html_element.find_all(string=True)
 
             for element in text_elements:
                 old_text = element.string
@@ -267,18 +270,18 @@ html {
                     element.string.replace_with(new_text)
             html_element.replace_with(html_element)
 
-            with open(html_file, 'w') as file:
+            with open(html_file, "w") as file:
                 file.write(soup.prettify())
 
     def pack(self, method="to_vertical"):
-        lang = 'original'
+        lang = "original"
         if self.convert_to is not None:
             lang = self.convert_to
-        if method == 'to_vertical':
+        if method == "to_vertical":
             book_name_v = f"{self.book_name}-v-{lang}.epub"
         else:
             book_name_v = f"{self.book_name}-h-{lang}.epub"
-        
+
         shutil.make_archive(book_name_v, "zip", self.book_path)
         os.rename(book_name_v + ".zip", book_name_v)
         shutil.rmtree(self.book_path)
@@ -296,6 +299,6 @@ html {
             self.change_epub_to_horizontal()
         else:
             raise Exception("Only support epub to vertical or horizontal for now")
-        
+
         self.convert()
         self.pack(method=method)

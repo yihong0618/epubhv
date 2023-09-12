@@ -25,11 +25,22 @@ def main():
         "--convert",
         dest="convert",
         choices=[
-            "s2t", "t2s", 's2tw', 
-            'tw2s', 's2hk', 'hk2s', 
-            's2twp', 'tw2sp', 't2tw',
-            'hk2t', 't2hk', 't2jp','jp2t', 'tw2t'],
-        help='''
+            "s2t",
+            "t2s",
+            "s2tw",
+            "tw2s",
+            "s2hk",
+            "hk2s",
+            "s2twp",
+            "tw2sp",
+            "t2tw",
+            "hk2t",
+            "t2hk",
+            "t2jp",
+            "jp2t",
+            "tw2t",
+        ],
+        help="""
 change all the epub files to specific language
 
 
@@ -47,7 +58,7 @@ t2hk: Traditional Chinese (OpenCC Standard) to Hong Kong variant
 t2jp: Traditional Chinese Characters (Kyūjitai) to New Japanese Kanji
 jp2t: New Japanese Kanji to Traditional Chinese Characters (Kyūjitai)
 tw2t: Traditional Chinese (OpenCC Standard) to Traditional Chinese (Taiwan standard)
-        ''',
+        """,
     )
 
     options = parser.parse_args()

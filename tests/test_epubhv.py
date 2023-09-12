@@ -11,6 +11,7 @@ def test_find_epub_books():
             "tests/test_epub/animal_farm.epub",
             "tests/test_epub/Liber_Esther.epub",
             "tests/test_epub/books/lemo.epub",
+            "tests/test_epub/sanguo.epub",
         ]
     )
 
@@ -37,14 +38,37 @@ def test_change_epub_to_vertical():
     b = EPUBHV("tests/test_epub/animal_farm.epub")
     b.run()
     assert b.opf_file == Path(".epub_temp_dir/animal_farm/content.opf")
-    os.remove("animal_farm-v.epub")
+    os.remove("animal_farm-v-original.epub")
 
 
 def test_find_epub_css_files():
     b = EPUBHV("tests/test_epub/animal_farm.epub")
     b._make_epub_values()
     assert b.has_css_file == False
+    b.run()
     f = EPUBHV("tests/test_epub/books/lemo.epub")
     f.run("to_horizontal")
-    assert os.path.exists("lemo-h.epub") is True
-    os.remove("lemo-h.epub")
+    assert os.path.exists("lemo-h-original.epub") is True
+    os.remove("lemo-h-original.epub")
+
+
+def test_change_epub_covert():
+    f = EPUBHV("tests/test_epub/sanguo.epub", "s2t")
+    f.run("to_vertical")
+    assert os.path.exists("sanguo-v-s2t.epub") is True
+    q = EPUBHV("sanguo-v-s2t.epub")
+    q.extract_one_epub_to_dir()
+    q._make_epub_values()
+    has_t_count = 0
+    for html_file in (
+        q.files_dict.get(".html", [])
+        + q.files_dict.get(".xhtml", [])
+        + q.files_dict.get(".htm", [])
+    ):
+        with open(html_file, "r") as f:
+            r = f.read()
+            if r.find("滾滾長江東逝水") > 0:
+                has_t_count += 1
+    assert has_t_count > 0
+    q.run("to_vertical")
+    os.remove("sanguo-v-s2t.epub")
