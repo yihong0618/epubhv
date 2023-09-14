@@ -47,7 +47,7 @@ def _make_epub_files_dict(dir_path):
 
 
 def load_opf_meta_data(opf_file):
-    with open(opf_file) as f:
+    with open(opf_file, encoding="utf-8") as f:
         content = f.read()
         soup = bs(content, "xml")
     return soup
@@ -81,7 +81,7 @@ class EPUBHV:
 
     @staticmethod
     def _add_stylesheet_to_html(html_file_path, stylesheet_line):
-        with open(html_file_path, "r") as file:
+        with open(html_file_path, "r", encoding="utf-8") as file:
             content = file.read()
 
         soup = bs(content, "html.parser")
@@ -95,7 +95,7 @@ class EPUBHV:
         # Add the stylesheet line inside the head section
         head.append(bs(stylesheet_line, "html.parser").contents[0])
 
-        with open(html_file_path, "w") as file:
+        with open(html_file_path, "w", encoding="utf-8") as file:
             file.write(str(soup))
 
     def _make_epub_values(self):
@@ -135,7 +135,7 @@ class EPUBHV:
                 m.attrs["content"] = "vertical-rl"
         else:
             meta_list.append(bs(V_STYLE_LINE_IN_OPF, "xml").contents[0])
-        with open(self.opf_file, "w") as file:
+        with open(self.opf_file, "w", encoding="utf-8") as file:
             file.write(str(soup))
 
         manifest = soup.find_all("manifest")[0]
@@ -171,7 +171,7 @@ class EPUBHV:
             if not style_path.exists():
                 os.mkdir(style_path)
             new_css_file = style_path / Path("style.css")
-            with open(new_css_file, "w") as f:
+            with open(new_css_file, "w", encoding="utf-8") as f:
                 f.write(
                     """
 @charset "utf-8";
@@ -213,7 +213,7 @@ html {
                 m.attrs["content"] = "horizontal-lr"
         else:
             meta_list.append(bs(H_STYLE_LINE_IN_OPF, "xml").contents[0])
-        with open(self.opf_file, "w") as file:
+        with open(self.opf_file, "w", encoding="utf-8") as file:
             file.write(str(soup))
 
         manifest = soup.find_all("manifest")[0]
