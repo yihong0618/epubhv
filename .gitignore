@@ -161,4 +161,5 @@ cython_debug/
 
 .epub_temp_dir/*
 *.epub
+*.zip
 .DS_Store
