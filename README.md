@@ -27,6 +27,8 @@ epubhv d.epub --h --convert t2s
 # or a folder contains butch of epubs
 epubhv tests/test_epub # will generate all epub files to epub-v
 
+# you can specify the punctuation style
+epubhv e.epub --convert s2t --punctuation none
 ```
 
 ## Thanks

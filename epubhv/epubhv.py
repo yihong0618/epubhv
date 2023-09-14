@@ -276,7 +276,6 @@ html {
                                 punc = "s2t" if method == "to_vertical" else "t2s"
                             else:
                                 punc = self.convert_to
-                        print(f"punc: {punc}")
                         source, target = punc.split("2")
                         exit
                         punc_converter = Punctuation()
@@ -290,8 +289,7 @@ html {
                 html_element.replace_with(html_element)
 
             with open(html_file, "w", encoding='utf-8') as file:
-                    element.string.replace_with(new_text)
-            html_element.replace_with(html_element)
+                html_element.replace_with(html_element)
 
             with open(html_file, "w", encoding="utf-8", errors="ignore") as file:
                 file.write(soup.prettify())
