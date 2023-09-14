@@ -46,6 +46,7 @@ def test_find_epub_css_files():
     b._make_epub_values()
     assert b.has_css_file == False
     b.run()
+    os.remove("animal_farm-v-original.epub")
     f = EPUBHV("tests/test_epub/books/lemo.epub")
     f.run("to_horizontal")
     assert os.path.exists("lemo-h-original.epub") is True
@@ -65,10 +66,10 @@ def test_change_epub_covert():
         + q.files_dict.get(".xhtml", [])
         + q.files_dict.get(".htm", [])
     ):
-        with open(html_file, "r") as f:
+        with open(html_file, "r", encoding="utf-8", errors="ignore") as f:
             r = f.read()
             if r.find("滾滾長江東逝水") > 0:
                 has_t_count += 1
     assert has_t_count > 0
     q.run("to_vertical")
-    os.remove("sanguo-v-s2t.epub")
+    os.remove("sanguo-v-s2t-v-original.epub")

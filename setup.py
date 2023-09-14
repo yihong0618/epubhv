@@ -6,7 +6,7 @@ setup(
     author_email="zouzou0208@gmail.com",
     url="https://github.com/yihong0618/epubhv",
     license="MIT",
-    version="0.2.0",
+    version="0.2.2",
     install_requires=[
         "bs4",
         "lxml",
