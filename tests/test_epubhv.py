@@ -44,7 +44,7 @@ def test_change_epub_to_vertical():
 def test_find_epub_css_files():
     b = EPUBHV("tests/test_epub/animal_farm.epub")
     b._make_epub_values()
-    assert b.has_css_file == False
+    assert b.has_css_file is False
     b.run()
     os.remove("animal_farm-v-original.epub")
     f = EPUBHV("tests/test_epub/books/lemo.epub")
