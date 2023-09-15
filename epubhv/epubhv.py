@@ -4,21 +4,19 @@ Follow these steps to change epub books to vertical or horizontal.
 """
 import logging
 import os
+from pathlib import Path
 import shutil
 import zipfile
 from collections import defaultdict
-from pathlib import Path
 
 import cssutils
 import opencc
 from bs4 import BeautifulSoup as bs
-from epubhv import punctuation
 from epubhv.punctuation import Punctuation
 
 cssutils.log.setLevel(logging.CRITICAL)
 
-WRITING_KEY_LIST = ["writing-mode",
-                    "-webkit-writing-mode", "-epub-writing-mode"]
+WRITING_KEY_LIST = ["writing-mode", "-webkit-writing-mode", "-epub-writing-mode"]
 V_STYLE_LINE = '<link rel="stylesheet" href="../Style/style.css" type="text/css" />'
 # same as v
 H_STYLE_LINE = '<link rel="stylesheet" href="../Style/style.css" type="text/css" />'
@@ -33,22 +31,15 @@ H_ITEM_TO_ADD_IN_MANIFEST = (
 )
 
 
-def list_all_epub_in_dir(path):
-    files = []
-    for root, _, filenames in os.walk(path):
-        for filename in filenames:
-            relative_path = os.path.join(
-                root, filename).replace("\\", "/")  # windows
-            files.append(relative_path)
-    return files
+def list_all_epub_in_dir(path: Path) -> set:
+    return set(path.rglob("*.epub"))
 
 
 def _make_epub_files_dict(dir_path):
     files_dict = defaultdict(list)
     for root, _, filenames in os.walk(dir_path):
         for filename in filenames:
-            files_dict[Path(filename).suffix].append(
-                Path(root) / Path(filename))
+            files_dict[Path(filename).suffix].append(Path(root) / Path(filename))
     return files_dict
 
 
@@ -80,8 +71,7 @@ class EPUBHV:
         book_name = self.epub_file.name.split(".")[0]
         self.book_name = book_name
         book_path = Path(".epub_temp_dir") / Path(book_name)
-        if not Path(".epub_temp_dir").exists():
-            os.mkdir(".epub_temp_dir")
+        Path(".epub_temp_dir").mkdir(parents=True, exist_ok=True)
         with zipfile.ZipFile(self.epub_file) as f:
             f.extractall(book_path)
         self.book_path = book_path
@@ -273,11 +263,12 @@ html {
                     if punc != "none":
                         if punc == "auto":
                             if self.convert_to is None:
-                                punc = "s2t" if method == "to_vertical" else "t2s"
+                                punc = "s2t" if method == "to_vertical" else "t2t"
+                                # default: convert “‘’” to 「『』」 in vertical mode,
+                                # but not to “‘’” in horizontal mode
                             else:
                                 punc = self.convert_to
                         source, target = punc.split("2")
-                        exit
                         punc_converter = Punctuation()
                         new_text = punc_converter.convert(
                             new_text,
@@ -288,7 +279,7 @@ html {
                 element.string.replace_with(new_text)
                 html_element.replace_with(html_element)
 
-            with open(html_file, "w", encoding='utf-8') as file:
+            with open(html_file, "w", encoding="utf-8") as file:
                 html_element.replace_with(html_element)
 
             with open(html_file, "w", encoding="utf-8", errors="ignore") as file:
@@ -319,8 +310,7 @@ html {
         elif method == "to_horizontal":
             self.change_epub_to_horizontal()
         else:
-            raise Exception(
-                "Only support epub to vertical or horizontal for now")
+            raise Exception("Only support epub to vertical or horizontal for now")
 
         self.convert(method=method)
         self.pack(method=method)

@@ -2,14 +2,11 @@ from epubhv import EPUBHV, list_all_epub_in_dir
 from pathlib import Path
 
 import argparse
-import os
 
 
 def main():
-    parser = argparse.ArgumentParser(
-        formatter_class=argparse.RawTextHelpFormatter)
-    parser.add_argument(
-        "epub", help="file or dir that contains epub files to change")
+    parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
+    parser.add_argument("epub", help="file or dir that contains epub files to change")
     parser.add_argument(
         "--v",
         dest="v",
@@ -31,7 +28,7 @@ def main():
 
         none: do not convert based on the direction
         other options convert between vertical and horizontal punctuation
-        """
+        """,
     )
 
     parser.add_argument(
@@ -91,7 +88,7 @@ tw2t: Traditional Chinese (OpenCC Standard) to Traditional Chinese (Taiwan stand
                     e = EPUBHV(
                         f,
                         convert_to=options.convert,
-                        convert_punctuation=options.punctuation
+                        convert_punctuation=options.punctuation,
                     )
                     e.run(method)
                 except Exception as e:
@@ -101,8 +98,7 @@ tw2t: Traditional Chinese (OpenCC Standard) to Traditional Chinese (Taiwan stand
             e = EPUBHV(epub_files, convert_to=options.convert)
             e.run(method)
     else:
-        raise Exception(
-            "Please make sure it is a dir contains epub or is a epub file.")
+        raise Exception("Please make sure it is a dir contains epub or is a epub file.")
 
 
 if __name__ == "__main__":
