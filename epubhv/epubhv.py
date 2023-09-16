@@ -20,20 +20,27 @@ from epubhv.punctuation import Punctuation
 
 cssutils.log.setLevel(logging.CRITICAL)
 
-WRITING_KEY_LIST: List[str] = ["writing-mode",
-                               "-webkit-writing-mode", "-epub-writing-mode"]
-V_STYLE_LINE: str = '<link rel="stylesheet" href="../Style/style.css" type="text/css" />'
+WRITING_KEY_LIST: List[str] = [
+    "writing-mode",
+    "-webkit-writing-mode",
+    "-epub-writing-mode",
+]
+V_STYLE_LINE: str = (
+    '<link rel="stylesheet" href="../Style/style.css" type="text/css" />'
+)
 # same as v
-H_STYLE_LINE: str = '<link rel="stylesheet" href="../Style/style.css" type="text/css" />'
+H_STYLE_LINE: str = (
+    '<link rel="stylesheet" href="../Style/style.css" type="text/css" />'
+)
 V_STYLE_LINE_IN_OPF: str = '<meta content="vertical-rl" name="primary-writing-mode"/>'
 H_STYLE_LINE_IN_OPF: str = '<meta content="horizontal-lr" name="primary-writing-mode"/>'
-V_ITEM_TO_ADD_IN_MANIFEST: Tuple[str] = (
-    '<item id="stylesheet" href="Style/style.css" media-type="text/css" />'
-)
+V_ITEM_TO_ADD_IN_MANIFEST: Tuple[
+    str
+] = '<item id="stylesheet" href="Style/style.css" media-type="text/css" />'
 # same as v
-H_ITEM_TO_ADD_IN_MANIFEST: Tuple[str] = (
-    '<item id="stylesheet" href="Style/style.css" media-type="text/css" />'
-)
+H_ITEM_TO_ADD_IN_MANIFEST: Tuple[
+    str
+] = '<item id="stylesheet" href="Style/style.css" media-type="text/css" />'
 
 
 def list_all_epub_in_dir(path: Path) -> set:
@@ -44,8 +51,7 @@ def _make_epub_files_dict(dir_path) -> Dict[str, List[Path]]:
     files_dict: Dict[str, List[Path]] = defaultdict(list)
     for root, _, filenames in os.walk(dir_path):
         for filename in filenames:
-            files_dict[Path(filename).suffix].append(
-                Path(root) / Path(filename))
+            files_dict[Path(filename).suffix].append(Path(root) / Path(filename))
     return files_dict
 
 
@@ -57,7 +63,9 @@ def load_opf_meta_data(opf_file) -> bs:
 
 
 class EPUBHV:
-    def __init__(self, file_name: Path, convert_to: str = None, convert_punctuation="auto"):
+    def __init__(
+        self, file_name: Path, convert_to: str = None, convert_punctuation="auto"
+    ):
         self.epub_file = Path(file_name)
         self.has_css_file = False
         self.files_dict = {}
@@ -202,7 +210,8 @@ html {
                 + self.files_dict.get(".htm", [])
             ):
                 self._add_stylesheet_to_html(
-                    html_file_path=f, stylesheet_line=V_STYLE_LINE)
+                    html_file_path=f, stylesheet_line=V_STYLE_LINE
+                )
         with open(self.opf_file, "w", encoding="utf-8", errors="ignore") as file:
             file.write(str(soup))
 
@@ -263,8 +272,7 @@ html {
             soup: bs = bs(content, "html.parser")
 
             html_element: Tag = soup.find("html")
-            text_elements: ResultSet[PageElement] = html_element.find_all(
-                string=True)
+            text_elements: ResultSet[PageElement] = html_element.find_all(string=True)
 
             for element in text_elements:
                 old_text = element.string
@@ -305,7 +313,9 @@ html {
         else:
             book_name_v: str = f"{self.book_name}-h-{lang}.epub"
 
-        shutil.make_archive(base_name=book_name_v, format="zip", root_dir=self.book_path)
+        shutil.make_archive(
+            base_name=book_name_v, format="zip", root_dir=self.book_path
+        )
         os.rename(src=book_name_v + ".zip", dst=book_name_v)
         shutil.rmtree(self.book_path)
 
@@ -321,8 +331,7 @@ html {
         elif method == "to_horizontal":
             self.change_epub_to_horizontal()
         else:
-            raise Exception(
-                "Only support epub to vertical or horizontal for now")
+            raise Exception("Only support epub to vertical or horizontal for now")
 
         self.convert(method=method)
         self.pack(method=method)

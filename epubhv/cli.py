@@ -1,7 +1,9 @@
-import argparse
 from pathlib import Path
 from typing import List
 from argparse import ArgumentParser, Namespace, RawTextHelpFormatter
+
+from epubhv.epubhv import EPUBHV, list_all_epub_in_dir
+
 
 def main():
     parser: ArgumentParser = ArgumentParser(formatter_class=RawTextHelpFormatter)
@@ -86,8 +88,8 @@ tw2t: Traditional Chinese (OpenCC Standard) to Traditional Chinese (Taiwan stand
             for f in files:
                 print(f"{str(f)} is {method}")
                 try:
-                    epubhv: EPUBHV = EPUBHV(file_name=
-                        f,
+                    epubhv: EPUBHV = EPUBHV(
+                        file_name=f,
                         convert_to=options.convert,
                         convert_punctuation=options.punctuation,
                     )

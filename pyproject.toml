@@ -12,7 +12,6 @@ dependencies = [
     "opencc-python-reimplemented==0.1.7",
     "soupsieve==2.5",
     "typed-argument-parser==1.8.1",
-    "pytest==7.4.2",
 ]
 
 requires-python = ">=3.8"
@@ -27,3 +26,17 @@ epubhv = "epubhv.cli:main"
 [build-system]
 requires = ["pdm-backend"]
 build-backend = "pdm.backend"
+
+[tool.pdm.scripts]
+format = "black ."
+lint = "black . --check"
+test = "pytest -vv"
+all = {composite = ["lint", "test"]}
+
+[tool.pdm.dev-dependencies]
+test = [
+    "pytest>=7.4.2",
+]
+style = [
+    "black>=23.9.1",
+]
