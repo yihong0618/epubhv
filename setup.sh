@@ -10,5 +10,5 @@ then
     # Install poetry for python dependency management
     curl -sSL https://pdm.fming.dev/install-pdm.py | python3 -
 fi
-# Install python dependencies
-pdm install
+# Install python dependencies (including development-only ones)
+pdm install -d
