@@ -4,14 +4,15 @@ Follow these steps to change epub books to vertical or horizontal.
 """
 import logging
 import os
-from pathlib import Path
 import shutil
 import zipfile
 from collections import defaultdict
+from pathlib import Path
 
 import cssutils
 import opencc
 from bs4 import BeautifulSoup as bs
+
 from epubhv.punctuation import Punctuation
 
 cssutils.log.setLevel(logging.CRITICAL)
@@ -132,8 +133,6 @@ class EPUBHV:
                 m.attrs["content"] = "vertical-rl"
         else:
             meta_list.append(bs(V_STYLE_LINE_IN_OPF, "xml").contents[0])
-        with open(self.opf_file, "w", encoding="utf-8", errors="ignore") as file:
-            file.write(str(soup))
 
         manifest = soup.find_all("manifest")[0]
         items = [i for i in manifest.find_all("item")]
@@ -196,6 +195,8 @@ html {
                 + self.files_dict.get(".htm", [])
             ):
                 self._add_stylesheet_to_html(f, V_STYLE_LINE)
+        with open(self.opf_file, "w", encoding="utf-8", errors="ignore") as file:
+            file.write(str(soup))
 
     def change_epub_to_horizontal(self):
         """

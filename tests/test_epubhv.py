@@ -2,7 +2,9 @@ import os
 from pathlib import Path
 from shutil import rmtree
 
-from epubhv import EPUBHV, _make_epub_files_dict, list_all_epub_in_dir, Punctuation
+import opencc
+
+from epubhv import EPUBHV, Punctuation, _make_epub_files_dict, list_all_epub_in_dir
 
 
 def test_find_epub_books():
@@ -79,11 +81,10 @@ def test_change_epub_covert():
     assert has_t_count > 0
     q.run("to_vertical")
     os.remove("sanguo-v-s2t.epub")
+    os.remove("sanguo-v-s2t-v-original.epub")
 
 
 def test_punctuation():
-    import opencc
-
     punctuation = Punctuation()
 
     res = punctuation.convert(

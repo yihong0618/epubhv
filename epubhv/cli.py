@@ -1,7 +1,7 @@
-from epubhv import EPUBHV, list_all_epub_in_dir
+import argparse
 from pathlib import Path
 
-import argparse
+from epubhv import EPUBHV, list_all_epub_in_dir
 
 
 def main():
@@ -24,6 +24,7 @@ def main():
         "--punctuation",
         dest="punctuation",
         choices=["auto", "t2s", "s2t", "s2s", "t2t", "none"],
+        default="auto",
         help="""convert punctuation to specific locale and direction (default: auto)
 
         none: do not convert based on the direction
