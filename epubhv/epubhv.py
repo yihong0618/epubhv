@@ -4,14 +4,15 @@ Follow these steps to change epub books to vertical or horizontal.
 """
 import logging
 import os
+from pathlib import Path
 import shutil
 import zipfile
 from collections import defaultdict
-from pathlib import Path
 
 import cssutils
 import opencc
 from bs4 import BeautifulSoup as bs
+from epubhv.punctuation import Punctuation
 
 cssutils.log.setLevel(logging.CRITICAL)
 
@@ -30,12 +31,8 @@ H_ITEM_TO_ADD_IN_MANIFEST = (
 )
 
 
-def list_all_epub_in_dir(path):
-    files = []
-    for root, _, filenames in os.walk(path):
-        for filename in filenames:
-            files.append(os.path.join(root, filename))
-    return files
+def list_all_epub_in_dir(path: Path) -> set:
+    return set(path.rglob("*.epub"))
 
 
 def _make_epub_files_dict(dir_path):
@@ -54,7 +51,7 @@ def load_opf_meta_data(opf_file):
 
 
 class EPUBHV:
-    def __init__(self, file_name, convert_to=None):
+    def __init__(self, file_name, convert_to=None, convert_punctuation="auto"):
         self.epub_file = Path(file_name)
         self.has_css_file = False
         self.files_dict = {}
@@ -67,14 +64,14 @@ class EPUBHV:
         else:
             self.converter = None
             self.convert_to = None
+        self.convert_punctuation = convert_punctuation
 
     def extract_one_epub_to_dir(self):
         assert self.epub_file.suffix == ".epub", f"{self.epub_file} Must be epub file"
         book_name = self.epub_file.name.split(".")[0]
         self.book_name = book_name
         book_path = Path(".epub_temp_dir") / Path(book_name)
-        if not Path(".epub_temp_dir").exists():
-            os.mkdir(".epub_temp_dir")
+        Path(".epub_temp_dir").mkdir(parents=True, exist_ok=True)
         with zipfile.ZipFile(self.epub_file) as f:
             f.extractall(book_path)
         self.book_path = book_path
@@ -160,7 +157,13 @@ class EPUBHV:
                                 s.style[w] = "vertical-rl"
                 if not has_html_or_body:
                     p.add(
-                        "html {-epub-writing-mode: vertical-rl; writing-mode: vertical-rl; -webkit-writing-mode: vertical-rl}"
+                        """
+                        html {
+                            -epub-writing-mode: vertical-rl;
+                            writing-mode: vertical-rl;
+                            -webkit-writing-mode: vertical-rl;
+                        }
+                        """
                     )
                 css_style = p.cssText
                 with open(css, "wb") as f:
@@ -178,7 +181,7 @@ class EPUBHV:
 html {
   -epub-writing-mode: vertical-rl;
   writing-mode: vertical-rl;
-  -webkit-writing-mode: vertical-rl
+  -webkit-writing-mode: vertical-rl;
 }
                         """
                 )
@@ -236,7 +239,7 @@ html {
                 with open(css, "wb") as f:
                     f.write(css_style)
 
-    def convert(self):
+    def convert(self, method="to_vertical"):
         if self.converter is None:
             return
 
@@ -256,8 +259,28 @@ html {
                 old_text = element.string
                 if old_text is not None:
                     new_text = self.converter.convert(old_text)
-                    element.string.replace_with(new_text)
-            html_element.replace_with(html_element)
+                    punc = self.convert_punctuation
+                    if punc != "none":
+                        if punc == "auto":
+                            if self.convert_to is None:
+                                punc = "s2t" if method == "to_vertical" else "t2t"
+                                # default: convert “‘’” to 「『』」 in vertical mode,
+                                # but not to “‘’” in horizontal mode
+                            else:
+                                punc = self.convert_to
+                        source, target = punc.split("2")
+                        punc_converter = Punctuation()
+                        new_text = punc_converter.convert(
+                            new_text,
+                            horizontal=method == "to_horizontal",
+                            source_locale=punc_converter.map_locale(source),
+                            target_locale=punc_converter.map_locale(target),
+                        )
+                element.string.replace_with(new_text)
+                html_element.replace_with(html_element)
+
+            with open(html_file, "w", encoding="utf-8") as file:
+                html_element.replace_with(html_element)
 
             with open(html_file, "w", encoding="utf-8", errors="ignore") as file:
                 file.write(soup.prettify())
@@ -289,5 +312,5 @@ html {
         else:
             raise Exception("Only support epub to vertical or horizontal for now")
 
-        self.convert()
+        self.convert(method=method)
         self.pack(method=method)

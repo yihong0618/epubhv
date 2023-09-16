@@ -2,7 +2,6 @@ from epubhv import EPUBHV, list_all_epub_in_dir
 from pathlib import Path
 
 import argparse
-import os
 
 
 def main():
@@ -19,6 +18,17 @@ def main():
         dest="h",
         action="store_true",
         help="change all the epub files to hortical",
+    )
+
+    parser.add_argument(
+        "--punctuation",
+        dest="punctuation",
+        choices=["auto", "t2s", "s2t", "s2s", "t2t", "none"],
+        help="""convert punctuation to specific locale and direction (default: auto)
+
+        none: do not convert based on the direction
+        other options convert between vertical and horizontal punctuation
+        """,
     )
 
     parser.add_argument(
@@ -75,7 +85,11 @@ tw2t: Traditional Chinese (OpenCC Standard) to Traditional Chinese (Taiwan stand
             for f in files:
                 print(f"{str(f)} is {method}")
                 try:
-                    e = EPUBHV(f, convert_to=options.convert)
+                    e = EPUBHV(
+                        f,
+                        convert_to=options.convert,
+                        convert_punctuation=options.punctuation,
+                    )
                     e.run(method)
                 except Exception as e:
                     print(f"{str(f)} {method} is failed by {str(e)}")
