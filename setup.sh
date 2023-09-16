@@ -12,3 +12,4 @@ then
 fi
 # Install python dependencies (including development-only ones)
 pdm install -d
+pdm venv activate

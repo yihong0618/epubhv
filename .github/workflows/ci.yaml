@@ -22,12 +22,12 @@ jobs:
             bash ./setup.sh
       - name: Check formatting (black)
         run: |
-            black . --check
+            pdm run lint
       - name: Test
         run: |
-            pytest --v
+            pdm run test
 
-      - name: Test install python 3.9  
+      - name: Test building
         run: |
-            pip install . 
+            pdm build
 
