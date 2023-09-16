@@ -8,7 +8,7 @@ make your epub books vertical or horizontal.
 pip install epubhv
 or
 git clone https://github.com/yihong0618/epubhv.git
-cd epubhv && pip install .
+cd epubhv && bash ./setup.sh
 ```
 
 ## Use
