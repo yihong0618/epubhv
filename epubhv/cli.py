@@ -1,11 +1,10 @@
 import argparse
 from pathlib import Path
-
-from epubhv import EPUBHV, list_all_epub_in_dir
-
+from typing import List
+from argparse import ArgumentParser, Namespace, RawTextHelpFormatter
 
 def main():
-    parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
+    parser: ArgumentParser = ArgumentParser(formatter_class=RawTextHelpFormatter)
     parser.add_argument("epub", help="file or dir that contains epub files to change")
     parser.add_argument(
         "--v",
@@ -72,32 +71,33 @@ tw2t: Traditional Chinese (OpenCC Standard) to Traditional Chinese (Taiwan stand
         """,
     )
 
-    options = parser.parse_args()
+    options: Namespace = parser.parse_args()
     epub_files = Path(options.epub)
     # default is to to_vertical
-    method = "to_vertical"
+    method: str = "to_vertical"
     if options.h:
         method = "to_horizontal"
     elif options.v:
         method = "to_vertical"
     if epub_files.exists():
         if epub_files.is_dir():
-            files = list_all_epub_in_dir(epub_files)
+            files: List[Path] = list_all_epub_in_dir(epub_files)
+            f: Path
             for f in files:
                 print(f"{str(f)} is {method}")
                 try:
-                    e = EPUBHV(
+                    epubhv: EPUBHV = EPUBHV(file_name=
                         f,
                         convert_to=options.convert,
                         convert_punctuation=options.punctuation,
                     )
-                    e.run(method)
-                except Exception as e:
-                    print(f"{str(f)} {method} is failed by {str(e)}")
+                    epubhv.run(method)
+                except Exception as epubhv:
+                    print(f"{str(f)} {method} is failed by {str(epubhv)}")
         else:
             print(f"{str(epub_files)} is {method}")
-            e = EPUBHV(epub_files, convert_to=options.convert)
-            e.run(method)
+            epubhv: EPUBHV = EPUBHV(epub_files, convert_to=options.convert)
+            epubhv.run(method)
     else:
         raise Exception("Please make sure it is a dir contains epub or is a epub file.")
 
