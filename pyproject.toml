@@ -1,0 +1,41 @@
+[project]
+name = "epubhv"
+version = "0.3.0"
+description = "make your epub books vertical or horizontal."
+authors = [{ name = "yihong0618", email = "zouzou0208@gmail.com" }]
+
+dependencies = [
+    "beautifulsoup4==4.12.2",
+    "cssutils==2.7.1",
+    "lxml==4.9.3",
+    "opencc-python-reimplemented==0.1.7",
+    "soupsieve==2.5",
+    "typed-argument-parser==1.8.1",
+]
+
+requires-python = ">=3.8"
+readme = "README.md"
+license = { text = "MIT" }
+
+[project.urls]
+Homepage = "https://github.com/yihong0618/epubhv"
+
+[project.scripts]
+epubhv = "epubhv.cli:main"
+[build-system]
+requires = ["pdm-backend"]
+build-backend = "pdm.backend"
+
+[tool.pdm.scripts]
+format = "black ."
+lint = "black . --check"
+test = "pytest -vv"
+all = {composite = ["lint", "test"]}
+
+[tool.pdm.dev-dependencies]
+test = [
+    "pytest>=7.4.2",
+]
+style = [
+    "black>=23.9.1",
+]

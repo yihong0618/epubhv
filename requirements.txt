@@ -1,6 +1,0 @@
-beautifulsoup4==4.12.2
-bs4==0.0.1
-cssutils==2.7.1
-lxml==4.9.3
-opencc-python-reimplemented==0.1.7
-soupsieve==2.5

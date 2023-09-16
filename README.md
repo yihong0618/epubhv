@@ -8,7 +8,7 @@ make your epub books vertical or horizontal.
 pip install epubhv
 or
 git clone https://github.com/yihong0618/epubhv.git
-cd epubhv && pip install .
+cd epubhv && bash ./setup.sh
 ```
 
 ## Use
@@ -29,6 +29,19 @@ epubhv tests/test_epub # will generate all epub files to epub-v
 
 # you can specify the punctuation style
 epubhv e.epub --convert s2t --punctuation auto
+```
+
+## Development
+
+```console
+# install all dependencies
+pdm install
+
+# format code
+pdm run format 
+
+# run the following scripts and make sure all pass before you start a Pull Request
+pdm run all
 ```
 
 ## Thanks

@@ -17,18 +17,17 @@ jobs:
         with:
           python-version: '3.9'
           cache: 'pip' # caching pip dependencies
+      - name: install PDM and python dependencies
+        run: |
+            bash ./setup.sh
       - name: Check formatting (black)
         run: |
-            pip install black pytest
-            black . --check
-      - name: install python requirements
-        run: pip install -r requirements.txt
-
+            pdm run lint
       - name: Test
         run: |
-            python3 -m pytest -vv
+            pdm run test
 
-      - name: Test install python 3.9  
+      - name: Test building
         run: |
-            pip install . 
+            pdm build
 
