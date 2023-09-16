@@ -31,6 +31,19 @@ epubhv tests/test_epub # will generate all epub files to epub-v
 epubhv e.epub --convert s2t --punctuation auto
 ```
 
+## Development
+
+```console
+# install all dependencies
+pdm install
+
+# format code
+pdm run format 
+
+# run the following scripts and make sure all pass before you start a Pull Request
+pdm run all
+```
+
 ## Thanks
 
 - @[tommyku](https://github.com/tommyku) --> [How to make EPUB ebooks with vertical layout?](https://blog.tommyku.com/blog/how-to-make-epubs-with-vertical-layout/)
