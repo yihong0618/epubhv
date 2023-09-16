@@ -28,13 +28,14 @@ epubhv d.epub --h --convert t2s
 epubhv tests/test_epub # will generate all epub files to epub-v
 
 # you can specify the punctuation style
-epubhv e.epub --convert s2t --punctuation none
+epubhv e.epub --convert s2t --punctuation auto
 ```
 
 ## Thanks
 
 - @[tommyku](https://github.com/tommyku) --> [How to make EPUB ebooks with vertical layout?](https://blog.tommyku.com/blog/how-to-make-epubs-with-vertical-layout/)
 - @[jiak94](https://github.com/jiak94) support OpenCC
+- @[OverflowCat ](https://github.com/OverflowCat) add punctuation styles.
 
 ## Appreciation
 
