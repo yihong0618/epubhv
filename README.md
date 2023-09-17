@@ -31,6 +31,10 @@ epubhv tests/test_epub # will generate all epub files to epub-v
 epubhv e.epub --convert s2t --punctuation auto
 ```
 
+## Contribution
+
+- Any issues or PRs are welcome.
+
 ## Development
 
 ```console
@@ -38,7 +42,7 @@ epubhv e.epub --convert s2t --punctuation auto
 pdm install
 
 # format code
-pdm run format 
+pdm run format
 
 # run the following scripts and make sure all pass before you start a Pull Request
 pdm run all
@@ -49,6 +53,7 @@ pdm run all
 - @[tommyku](https://github.com/tommyku) --> [How to make EPUB ebooks with vertical layout?](https://blog.tommyku.com/blog/how-to-make-epubs-with-vertical-layout/)
 - @[jiak94](https://github.com/jiak94) support OpenCC
 - @[OverflowCat ](https://github.com/OverflowCat) add punctuation styles.
+- @[jt-wang](https://github.com/jt-wang) Type and PDM!
 
 ## Appreciation
 

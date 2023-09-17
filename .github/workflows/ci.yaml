@@ -2,9 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
-    branches: [ main ]
+    branches: [main]
   workflow_dispatch:
 
 jobs:
@@ -12,27 +12,32 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - name: install python 3.9 
+      - name: install python 3.9
         uses: actions/setup-python@v4
         with:
-          python-version: '3.9'
-          cache: 'pip' # caching pip dependencies
+          python-version: "3.9"
+          cache: "pip" # caching pip dependencies
       - name: Setup PDM
         uses: pdm-project/setup-pdm@v3
       - name: install all dependencies
         run: |
-            pdm install -d
+          pdm install -d
       - name: Check format lint
         run: |
-            pdm run lint
+          pdm run lint
       - name: Check types
         run: |
-            pdm run typing
+          pdm run typing
       - name: Test
         run: |
-            pdm run test
+          pdm run test
 
       - name: Test building
         run: |
-            pdm build
+          pdm build
 
+      - name: Test Integers
+        run: |
+          python -m epubhv tests/test_epub/sanguo.epub
+          python -m epubhv tests/test_epub/sanguo.epub --convert s2t --punctuation autov
+          python -m epubhv sanguo-v-s2t.epub --h
