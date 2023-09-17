@@ -38,6 +38,6 @@ jobs:
 
       - name: Test Integers
         run: |
-          python -m epubhv tests/test_epub/sanguo.epub
-          python -m epubhv tests/test_epub/sanguo.epub --convert s2t --punctuation autov
-          python -m epubhv sanguo-v-s2t.epub --h
+          epubhv tests/test_epub/sanguo.epub
+          epubhv tests/test_epub/sanguo.epub --convert s2t --punctuation autov
+          epubhv sanguo-v-s2t.epub --h
