@@ -40,5 +40,5 @@ jobs:
         run: |
           pip install .
           epubhv tests/test_epub/sanguo.epub
-          epubhv tests/test_epub/sanguo.epub --convert s2t --punctuation autov
+          epubhv tests/test_epub/sanguo.epub --convert s2t --punctuation auto
           epubhv sanguo-v-s2t.epub --h
