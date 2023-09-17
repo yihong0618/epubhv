@@ -2,11 +2,11 @@
 # It is not intended for manual editing.
 
 [metadata]
-groups = ["default", "style", "test"]
+groups = ["default", "style", "test", "typing"]
 cross_platform = true
 static_urls = false
 lock_version = "4.3"
-content_hash = "sha256:a0717b0868c7fb58eb04a0fcbddc04562820c041f85ebaf98a09dd7be0910b98"
+content_hash = "sha256:ccf6a56024f0a4f6b4b19415960db3f73d9a3f3d77c3bef2a75a58baeb3f1c65"
 
 [[package]]
 name = "beautifulsoup4"
@@ -202,6 +202,19 @@ files = [
 ]
 
 [[package]]
+name = "nodeenv"
+version = "1.8.0"
+requires_python = ">=2.7,!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,!=3.4.*,!=3.5.*,!=3.6.*"
+summary = "Node.js virtual environment builder"
+dependencies = [
+    "setuptools",
+]
+files = [
+    {file = "nodeenv-1.8.0-py2.py3-none-any.whl", hash = "sha256:df865724bb3c3adc86b3876fa209771517b0cfe596beff01a92700e0e8be4cec"},
+    {file = "nodeenv-1.8.0.tar.gz", hash = "sha256:d51e0c37e64fbf47d017feac3145cdbb58836d7eee8c6f6d3b6880c5456227d2"},
+]
+
+[[package]]
 name = "opencc-python-reimplemented"
 version = "0.1.7"
 summary = "OpenCC made with Python"
@@ -251,6 +264,19 @@ files = [
 ]
 
 [[package]]
+name = "pyright"
+version = "1.1.327"
+requires_python = ">=3.7"
+summary = "Command line wrapper for pyright"
+dependencies = [
+    "nodeenv>=1.6.0",
+]
+files = [
+    {file = "pyright-1.1.327-py3-none-any.whl", hash = "sha256:3462cda239e9140276238bbdbd0b59d77406f1c2e14d8cb8c20c8e25639c6b3c"},
+    {file = "pyright-1.1.327.tar.gz", hash = "sha256:ba74148ad64f22020dbbed6781c4bdb38ecb8a7ca90dc3c87a4f08d1c0e11592"},
+]
+
+[[package]]
 name = "pytest"
 version = "7.4.2"
 requires_python = ">=3.7"
@@ -266,6 +292,16 @@ dependencies = [
 files = [
     {file = "pytest-7.4.2-py3-none-any.whl", hash = "sha256:1d881c6124e08ff0a1bb75ba3ec0bfd8b5354a01c194ddd5a0a870a48d99b002"},
     {file = "pytest-7.4.2.tar.gz", hash = "sha256:a766259cfab564a2ad52cb1aae1b881a75c3eb7e34ca3779697c23ed47c47069"},
+]
+
+[[package]]
+name = "setuptools"
+version = "68.2.2"
+requires_python = ">=3.8"
+summary = "Easily download, build, install, upgrade, and uninstall Python packages"
+files = [
+    {file = "setuptools-68.2.2-py3-none-any.whl", hash = "sha256:b454a35605876da60632df1a60f736524eb73cc47bbc9f3f1ef1b644de74fd2a"},
+    {file = "setuptools-68.2.2.tar.gz", hash = "sha256:4ac1475276d2f1c48684874089fefcd83bd7162ddaafb81fac866ba0db282a87"},
 ]
 
 [[package]]
@@ -299,6 +335,27 @@ dependencies = [
 ]
 files = [
     {file = "typed-argument-parser-1.8.1.tar.gz", hash = "sha256:a3c286a6fac597da558c13b13e7090935803f43f47e46e51ed3c1d20959f47b9"},
+]
+
+[[package]]
+name = "types-beautifulsoup4"
+version = "4.12.0.6"
+summary = "Typing stubs for beautifulsoup4"
+dependencies = [
+    "types-html5lib",
+]
+files = [
+    {file = "types-beautifulsoup4-4.12.0.6.tar.gz", hash = "sha256:045ab285d3e540186e16133612f43f67e31f910e6d7578906b43a0ad8f811347"},
+    {file = "types_beautifulsoup4-4.12.0.6-py3-none-any.whl", hash = "sha256:3da00d754e73afae0ec2793253af0cb9aa1ff2c730e34b31c60313da781b4f6f"},
+]
+
+[[package]]
+name = "types-html5lib"
+version = "1.1.11.15"
+summary = "Typing stubs for html5lib"
+files = [
+    {file = "types-html5lib-1.1.11.15.tar.gz", hash = "sha256:80e1a2062d22a3affe5c28d97da30bffbf3a076d393c80fc6f1671216c1bd492"},
+    {file = "types_html5lib-1.1.11.15-py3-none-any.whl", hash = "sha256:16fe936d99b9f7fc210e2e21a2aed1b6bbbc554ad8242a6ef75f6f2bddb27e58"},
 ]
 
 [[package]]

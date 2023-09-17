@@ -29,13 +29,25 @@ build-backend = "pdm.backend"
 [tool.pdm.scripts]
 format = "black ."
 lint = "black . --check"
+typing = "pyright"
 test = "pytest -vv"
-all = {composite = ["lint", "test"]}
+all = { composite = ["lint", "typing", "test"] }
 
 [tool.pdm.dev-dependencies]
-test = [
-    "pytest>=7.4.2",
+test = ["pytest>=7.4.2"]
+style = ["black>=23.9.1"]
+typing = ["pyright>=1.1.327", "types-beautifulsoup4>=4.12.0.6"]
+
+
+[tool.pyright]
+include = ["epubhv", "tests"]
+exclude = [
+    "**/node_modules",
+    "**/__pycache__",
+    "src/experimental",
+    "src/typestubs",
 ]
-style = [
-    "black>=23.9.1",
-]
+defineConstant = { DEBUG = true }
+
+reportMissingImports = true
+reportMissingTypeStubs = false

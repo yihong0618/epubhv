@@ -8,17 +8,17 @@ import shutil
 import zipfile
 from collections import defaultdict
 from pathlib import Path
-from typing import List, Dict, Tuple
+from typing import List, Dict, Optional
 
 import cssutils
 from cssutils import CSSParser
 from cssutils.css import CSSStyleSheet
 import opencc
-from bs4 import BeautifulSoup as bs, PageElement, ResultSet, Tag
+from bs4 import BeautifulSoup as bs, NavigableString, PageElement, ResultSet, Tag
 
 from epubhv.punctuation import Punctuation
 
-cssutils.log.setLevel(logging.CRITICAL)
+cssutils.log.setLevel(logging.CRITICAL)  # type: ignore
 
 WRITING_KEY_LIST: List[str] = [
     "writing-mode",
@@ -34,20 +34,20 @@ H_STYLE_LINE: str = (
 )
 V_STYLE_LINE_IN_OPF: str = '<meta content="vertical-rl" name="primary-writing-mode"/>'
 H_STYLE_LINE_IN_OPF: str = '<meta content="horizontal-lr" name="primary-writing-mode"/>'
-V_ITEM_TO_ADD_IN_MANIFEST: Tuple[
-    str
-] = '<item id="stylesheet" href="Style/style.css" media-type="text/css" />'
+V_ITEM_TO_ADD_IN_MANIFEST: str = (
+    '<item id="stylesheet" href="Style/style.css" media-type="text/css" />'
+)
 # same as v
-H_ITEM_TO_ADD_IN_MANIFEST: Tuple[
-    str
-] = '<item id="stylesheet" href="Style/style.css" media-type="text/css" />'
+H_ITEM_TO_ADD_IN_MANIFEST: str = (
+    '<item id="stylesheet" href="Style/style.css" media-type="text/css" />'
+)
 
 
-def list_all_epub_in_dir(path: Path) -> set:
+def list_all_epub_in_dir(path: Path) -> set[Path]:
     return set(path.rglob("*.epub"))
 
 
-def _make_epub_files_dict(dir_path) -> Dict[str, List[Path]]:
+def make_epub_files_dict(dir_path: Path) -> Dict[str, List[Path]]:
     files_dict: Dict[str, List[Path]] = defaultdict(list)
     for root, _, filenames in os.walk(dir_path):
         for filename in filenames:
@@ -55,7 +55,7 @@ def _make_epub_files_dict(dir_path) -> Dict[str, List[Path]]:
     return files_dict
 
 
-def load_opf_meta_data(opf_file) -> bs:
+def load_opf_meta_data(opf_file: Path) -> bs:
     with open(opf_file, encoding="utf-8", errors="ignore") as f:
         content: str = f.read()
         soup: bs = bs(content, "xml")
@@ -64,21 +64,32 @@ def load_opf_meta_data(opf_file) -> bs:
 
 class EPUBHV:
     def __init__(
-        self, file_name: Path, convert_to: str = None, convert_punctuation="auto"
-    ):
-        self.epub_file = Path(file_name)
-        self.has_css_file = False
-        self.files_dict = {}
-        self.book_path = None
-        self.book_name = None
-        self.opf_file = None
+        self,
+        file_path: Path,
+        convert_to: Optional[str] = None,
+        convert_punctuation: Optional[str] = "auto",
+    ) -> None:
+        # declare instance fields
+        self.epub_file: Path
+        self.has_css_file: bool = False
+        self.files_dict: Dict[str, List[Path]] = {}
+        self.book_path: Path
+        self.book_name: str
+        self.opf_file: Path
+        self.converter: Optional[opencc.OpenCC]
+        self.convert_to: Optional[str]
+        self.convert_punctuation: str = "auto"
+
+        # initialize instance fields
+        self.epub_file = file_path
         if convert_to is not None:
-            self.converter: opencc.OpenCC = opencc.OpenCC(convert_to)
+            self.converter = opencc.OpenCC(convert_to)
             self.convert_to = convert_to
         else:
             self.converter = None
             self.convert_to = None
-        self.convert_punctuation = convert_punctuation
+        if convert_punctuation:
+            self.convert_punctuation = convert_punctuation
 
     def extract_one_epub_to_dir(self) -> None:
         assert self.epub_file.suffix == ".epub", f"{self.epub_file} Must be epub file"
@@ -98,10 +109,10 @@ class EPUBHV:
         soup: bs = bs(content, "html.parser")
 
         # Find the head section or create if not present
-        head: Tag = soup.find("head")
-        if not head:
-            head: Tag = soup.new_tag("head")
-            soup.html.insert(0, head)
+        head: Optional[Tag | NavigableString] = soup.find("head")
+        if not head or type(head) is NavigableString:
+            head = soup.new_tag("head")  # type: ignore
+            soup.html.insert(0, head)  # type: ignore
 
         # Add the stylesheet line inside the head section
         head.append(bs(stylesheet_line, "html.parser").contents[0])
@@ -109,7 +120,7 @@ class EPUBHV:
         with open(html_file_path, "w", encoding="utf-8", errors="ignore") as file:
             file.write(str(soup))
 
-    def _make_epub_values(self) -> None:
+    def make_epub_values(self) -> None:
         """
         setups:
           1. extract the epub files
@@ -118,7 +129,7 @@ class EPUBHV:
           4. find if has css file and make all css files to list
         """
         self.extract_one_epub_to_dir()
-        self.files_dict = _make_epub_files_dict(self.book_path)
+        self.files_dict = make_epub_files_dict(self.book_path)
         opf_files = self.files_dict.get(".opf", [])
         assert len(opf_files) == 1, "Epub must have only one opf file"
         self.opf_file = opf_files[0]
@@ -137,17 +148,18 @@ class EPUBHV:
         """
         soup: bs = load_opf_meta_data(self.opf_file)
         # change it to rtl -> right to left
-        spine: Tag = soup.find("spine")
-        if spine.attrs.get("page-progression-direction", "") != "rtl":
-            spine.attrs["page-progression-direction"] = "rtl"
-        meta_list: ResultSet = soup.find_all("meta")
+        spine: Optional[Tag | NavigableString] = soup.find("spine")
+        assert spine is not None
+        if spine.attrs.get("page-progression-direction", "") != "rtl":  # type: ignore
+            spine.attrs["page-progression-direction"] = "rtl"  # type: ignore
+        meta_list: ResultSet[Tag] = soup.find_all("meta")
         for m in meta_list:
             if m.attrs.get("name", "") == "primary-writing-mode":
                 m.attrs["content"] = "vertical-rl"
         else:
-            meta_list.append(bs(V_STYLE_LINE_IN_OPF, "xml").contents[0])
+            meta_list.append(bs(V_STYLE_LINE_IN_OPF, "xml").contents[0])  # type: ignore
 
-        manifest: PageElement = soup.find_all("manifest")[0]
+        manifest: Tag = soup.find_all("manifest")[0]
         items = [i for i in manifest.find_all("item")]
         self.css_files = [
             self.opf_dir / Path(i.attrs.get("href", ""))
@@ -159,17 +171,17 @@ class EPUBHV:
             css: Path
             for css in self.css_files:
                 c: CSSParser = CSSParser()
-                p: CSSStyleSheet = c.parseFile(css)
+                p: CSSStyleSheet = c.parseFile(css)  # type: ignore
                 has_html_or_body: bool = False
-                for s in p.cssRules.rulesOfType(1):
-                    if s.selectorText == "html":
+                for s in p.cssRules.rulesOfType(1):  # type: ignore
+                    if s.selectorText == "html":  # type: ignore
                         has_html_or_body = True
                         for w in WRITING_KEY_LIST:
-                            if w not in s.style.keys():
+                            if w not in s.style.keys():  # type: ignore
                                 # set it to vertical
-                                s.style[w] = "vertical-rl"
+                                s.style[w] = "vertical-rl"  # type: ignore
                 if not has_html_or_body:
-                    p.add(
+                    p.add(  # type: ignore
                         """
                         html {
                             -epub-writing-mode: vertical-rl;
@@ -178,17 +190,17 @@ class EPUBHV:
                         }
                         """
                     )
-                css_style = p.cssText
-                with open(css, "wb") as f:
-                    f.write(css_style)
+                css_style = p.cssText  # type: ignore
+                with open(css, "wb") as file:
+                    file.write(css_style)  # type: ignore
         else:
             # if we have no css file in the epub than we create one.
             style_path: Path = Path(self.opf_dir) / Path("Style")
             if not style_path.exists():
                 os.mkdir(style_path)
             new_css_file: Path = style_path / Path("style.css")
-            with open(new_css_file, "w", encoding="utf-8", errors="ignore") as f:
-                f.write(
+            with open(new_css_file, "w", encoding="utf-8", errors="ignore") as file:
+                file.write(
                     """
 @charset "utf-8";
 html {
@@ -225,19 +237,20 @@ html {
         """
         soup: bs = load_opf_meta_data(self.opf_file)
         # change it to ltr -> left to right
-        spine: Tag = soup.find("spine")
-        if spine.attrs.get("page-progression-direction", "") != "ltr":
-            spine.attrs["page-progression-direction"] = "ltr"
-        meta_list: ResultSet = soup.find_all("meta")
+        spine: Optional[Tag | NavigableString] = soup.find("spine")
+        assert spine is not None
+        if spine.attrs.get("page-progression-direction", "") != "ltr":  # type: ignore
+            spine.attrs["page-progression-direction"] = "ltr"  # type: ignore
+        meta_list: ResultSet[Tag] = soup.find_all("meta")
         for m in meta_list:
             if m.attrs.get("name", "") == "primary-writing-mode":
                 m.attrs["content"] = "horizontal-lr"
         else:
-            meta_list.append(bs(H_STYLE_LINE_IN_OPF, "xml").contents[0])
+            meta_list.append(bs(H_STYLE_LINE_IN_OPF, "xml").contents[0])  # type: ignore
         with open(self.opf_file, "w", encoding="utf-8", errors="ignore") as file:
             file.write(str(soup))
 
-        manifest: PageElement = soup.find_all("manifest")[0]
+        manifest: Tag = soup.find_all("manifest")[0]
         items = [i for i in manifest.find_all("item")]
         self.css_files = [
             self.opf_dir / Path(i.attrs.get("href", ""))
@@ -248,16 +261,16 @@ html {
         if self.has_css_file:
             for css in self.css_files:
                 c: CSSParser = CSSParser()
-                p: CSSStyleSheet = c.parseFile(css)
-                for s in p.cssRules.rulesOfType(1):
-                    for k in s.style.keys():
+                p: CSSStyleSheet = c.parseFile(css)  # type: ignore
+                for s in p.cssRules.rulesOfType(1):  # type: ignore
+                    for k in s.style.keys():  # type: ignore
                         if k in WRITING_KEY_LIST:
-                            del s.style[k]
-                css_style = p.cssText
-                with open(css, "wb") as f:
-                    f.write(css_style)
+                            del s.style[k]  # type: ignore
+                css_style = p.cssText  # type: ignore
+                with open(css, "wb") as file:
+                    file.write(css_style)  # type: ignore
 
-    def convert(self, method="to_vertical") -> None:
+    def convert(self, method: str = "to_vertical") -> None:
         if self.converter is None:
             return
 
@@ -271,13 +284,15 @@ html {
                 content: str = f.read()
             soup: bs = bs(content, "html.parser")
 
-            html_element: Tag = soup.find("html")
-            text_elements: ResultSet[PageElement] = html_element.find_all(string=True)
+            html_element: Optional[Tag | NavigableString] = soup.find("html")
+            assert html_element is not None
+            text_elements: ResultSet[PageElement] = html_element.find_all(string=True)  # type: ignore
 
-            for element in text_elements:
+            element: Tag
+            for element in text_elements:  # type: ignore
                 old_text = element.string
                 if old_text is not None:
-                    new_text = self.converter.convert(old_text)
+                    new_text = self.converter.convert(old_text)  # type: ignore
                     punc = self.convert_punctuation
                     if punc != "none":
                         if punc == "auto":
@@ -289,13 +304,13 @@ html {
                                 punc = self.convert_to
                         source, target = punc.split("2")
                         punc_converter = Punctuation()
-                        new_text = punc_converter.convert(
+                        new_text = punc_converter.convert(  # type: ignore
                             new_text,
                             horizontal=method == "to_horizontal",
-                            source_locale=punc_converter.map_locale(source),
-                            target_locale=punc_converter.map_locale(target),
+                            source_locale=punc_converter.map_locale(source),  # type: ignore
+                            target_locale=punc_converter.map_locale(target),  # type: ignore
                         )
-                element.string.replace_with(new_text)
+                element.string.replace_with(new_text)  # type: ignore
                 html_element.replace_with(html_element)
 
             with open(html_file, "w", encoding="utf-8") as file:
@@ -319,13 +334,13 @@ html {
         os.rename(src=book_name_v + ".zip", dst=book_name_v)
         shutil.rmtree(self.book_path)
 
-    def run(self, method="to_vertical") -> None:
+    def run(self, method: str = "to_vertical") -> None:
         assert method in [
             "to_horizontal",
             "to_vertical",
         ], "must be to_horizontal or to_vertical."
         ### make the basic epub value we need ###
-        self._make_epub_values()
+        self.make_epub_values()
         if method == "to_vertical":
             self.change_epub_to_vertical()
         elif method == "to_horizontal":
