@@ -17,12 +17,17 @@ jobs:
         with:
           python-version: '3.9'
           cache: 'pip' # caching pip dependencies
-      - name: install PDM and python dependencies
+      - name: Setup PDM
+        uses: pdm-project/setup-pdm@v3
+      - name: install all dependencies
         run: |
-            bash ./setup.sh
-      - name: Check formatting (black)
+            pdm install -d
+      - name: Check format lint
         run: |
             pdm run lint
+      - name: Check types
+        run: |
+            pdm run typing
       - name: Test
         run: |
             pdm run test
