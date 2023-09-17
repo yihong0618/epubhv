@@ -38,7 +38,6 @@ jobs:
 
       - name: Test Integers
         run: |
-          pip install .
-          epubhv tests/test_epub/sanguo.epub
-          epubhv tests/test_epub/sanguo.epub --convert s2t --punctuation auto
-          epubhv sanguo-v-s2t.epub --h
+          pdm run python -m epubhv tests/test_epub/sanguo.epub
+          pdm run python -m epubhv tests/test_epub/sanguo.epub --convert s2t --punctuation auto
+          pdm run python -m epubhv sanguo-v-s2t.epub --h

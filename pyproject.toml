@@ -1,6 +1,6 @@
 [project]
 name = "epubhv"
-version = "0.3.0"
+version = "0.3.1"
 description = "make your epub books vertical or horizontal."
 authors = [{ name = "yihong0618", email = "zouzou0208@gmail.com" }]
 
@@ -25,6 +25,9 @@ epubhv = "epubhv.cli:main"
 [build-system]
 requires = ["pdm-backend"]
 build-backend = "pdm.backend"
+
+[tool.pdm.build]
+include = ["epubhv"]
 
 [tool.pdm.scripts]
 format = "black ."
