@@ -1,15 +1,18 @@
 import re
+from typing import Dict, Literal
 
 
 class Punctuation:
-    def convert(self, text, horizontal, source_locale, target_locale):
+    def convert(
+        self, text: str, horizontal: bool, source_locale: str, target_locale: str
+    ) -> str:
         if horizontal:
             # Horizontal punctuations will be displayed as vertical
             # punctuations in vertical writing mode (but not vice versa),
             # so we'll just use horizontal ones.
             text = self.batch_replace(
-                text,
-                {
+                text=text,
+                replacement_dict={
                     "﹁": "「",
                     "﹂": "」",
                     "﹃": "『",
@@ -19,8 +22,8 @@ class Punctuation:
         if source_locale != target_locale:
             if source_locale == "hans":
                 text = self.batch_replace(
-                    text,
-                    {
+                    text=text,
+                    replacement_dict={
                         "‘": "「",
                         "’": "」",
                         "“": "『",
@@ -30,8 +33,8 @@ class Punctuation:
 
             # swap single quotes with double quotes
             text = self.batch_replace(
-                text,
-                {
+                text=text,
+                replacement_dict={
                     "『": "「",
                     "』": "」",
                     "「": "『",
@@ -41,8 +44,8 @@ class Punctuation:
 
             if target_locale == "hans" and horizontal:
                 text = self.batch_replace(
-                    text,
-                    {
+                    text=text,
+                    replacement_dict={
                         "「": "‘",
                         "」": "’",
                         "『": "“",
@@ -52,12 +55,12 @@ class Punctuation:
 
         return text
 
-    def map_locale(self, x):
+    def map_locale(self, x: str) -> Literal["hans", "hant"]:
         if x in ["s", "sp"]:
             return "hans"
         return "hant"
 
-    def batch_replace(self, text: str, replacement_dict: dict):
+    def batch_replace(self, text: str, replacement_dict: Dict[str, str]) -> str:
         if len(replacement_dict) == 0:
             return text
         return re.sub(
