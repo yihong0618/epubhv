@@ -55,6 +55,10 @@ pdm run all
 - @[OverflowCat ](https://github.com/OverflowCat) add punctuation styles.
 - @[jt-wang](https://github.com/jt-wang) Type and PDM!
 
+## Similar projects
+
+- [EpubConv_Python](https://github.com/ThanatosDi/EpubConv_Python) found a similar project, seems we are not the only one need this, great thanks, appreciation and respect.
+
 ## Appreciation
 
 - Thank you, that's enough. Just enjoy it.
