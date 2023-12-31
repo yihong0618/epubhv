@@ -41,3 +41,4 @@ jobs:
           pdm run python -m epubhv tests/test_epub/sanguo.epub
           pdm run python -m epubhv tests/test_epub/sanguo.epub --convert s2t --punctuation auto
           pdm run python -m epubhv sanguo-v-s2t.epub --h
+          pdm run python -m epubhv --h tests/test_epub/ --ruby # test ruby

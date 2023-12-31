@@ -1,16 +1,16 @@
 import os
 from pathlib import Path
 from shutil import rmtree
-
-import opencc
 from typing import Dict, List
 
+import opencc
 import pytest
+
 from epubhv.epubhv import (
     EPUBHV,
     Punctuation,
-    make_epub_files_dict,
     list_all_epub_in_dir,
+    make_epub_files_dict,
 )
 
 
@@ -94,6 +94,16 @@ def test_change_epub_covert() -> None:
     q.run("to_vertical")
     os.remove("sanguo-v-s2t.epub")
     os.remove("sanguo-v-s2t-v-original.epub")
+
+
+def test_ruby() -> None:
+    lemo_output = Path("lemo-h-original-ruby.epub")
+    lemo_output.unlink(True)
+    f: EPUBHV = EPUBHV(Path("tests/test_epub/books/lemo.epub"), need_ruby=True)
+    f.run("to_horizontal")
+    assert f.ruby_language == "ja"
+    assert lemo_output.exists()
+    lemo_output.unlink(True)
 
 
 def test_punctuation():

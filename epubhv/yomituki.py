@@ -8,12 +8,11 @@ I made some change
 import re
 from itertools import groupby
 
+import jieba
 from bs4 import BeautifulSoup
 from bs4.element import NavigableString, Script, Stylesheet, Tag, TemplateString
 from fugashi import Tagger
-import jieba
 from pypinyin import pinyin
-
 
 tagger = Tagger()
 
@@ -107,7 +106,7 @@ def cut_end(text, hira):
 
 
 def yomituki(sentence, lang="zh"):
-    assert lang in ["zh", "ja"], "Language must cn or ja"
+    assert lang in ["zh", "ja"], "Language must zh or ja"
     if lang == "zh":
         words_list = jieba.cut(sentence)
         hantei = hantei_chinese

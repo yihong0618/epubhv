@@ -145,7 +145,16 @@ class EPUBHV:
             # if we need ruby we need to find the ruby language
             languages = soup.find("dc:language")
             if languages:
-                self.ruby_language = languages.contents[0]
+                language = languages.contents[0]
+                if language in ["ja", "zh"]:
+                    self.ruby_language = language
+                    self.need_ruby = True
+                else:
+                    print(
+                        f"Ruby feature do not support this language -> {language}, \n for book: {self.book_name} we will ignore it."
+                    )
+                    self.need_ruby = False
+
             else:
                 print(
                     "There's no language meta data in meta file, we use Japanese as default. we can not ruby it"
