@@ -12,6 +12,7 @@ class Options:
     h: bool
     convert: str
     punctuation: str
+    ruby: bool
 
 
 def main() -> None:
@@ -21,13 +22,19 @@ def main() -> None:
         "--v",
         dest="v",
         action="store_true",
-        help="change all the epub files to vertical",
+        help="change all the epub files to vertical.",
     )
     parser.add_argument(
         "--h",
         dest="h",
         action="store_true",
-        help="change all the epub files to hortical",
+        help="change all the epub files to hortical.",
+    )
+    parser.add_argument(
+        "--ruby",
+        dest="ruby",
+        action="store_true",
+        help="Ruby it for Chinese and Japanese.",
     )
 
     parser.add_argument(
@@ -89,6 +96,7 @@ tw2t: Traditional Chinese (OpenCC Standard) to Traditional Chinese (Taiwan stand
         h=raw_args.h,
         convert=raw_args.convert,
         punctuation=raw_args.punctuation,
+        ruby=raw_args.ruby,
     )
 
     epub_files = Path(options.epub)
@@ -109,13 +117,16 @@ tw2t: Traditional Chinese (OpenCC Standard) to Traditional Chinese (Taiwan stand
                         file_path=f,
                         convert_to=options.convert,
                         convert_punctuation=options.punctuation,
+                        need_ruby=options.ruby,
                     )
                     epubhv.run(method=method)
                 except Exception as e:
                     print(f"{str(f)} {method} is failed by {str(e)}")
         else:
             print(f"{str(epub_files)} is {method}")
-            epubhv: EPUBHV = EPUBHV(file_path=epub_files, convert_to=options.convert)
+            epubhv: EPUBHV = EPUBHV(
+                file_path=epub_files, convert_to=options.convert, need_ruby=options.ruby
+            )
             epubhv.run(method=method)
     else:
         raise Exception("Please make sure it is a dir contains epub or is a epub file.")

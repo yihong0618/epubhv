@@ -1,6 +1,5 @@
 """
 Follow these steps to change epub books to vertical or horizontal.
-
 """
 import logging
 import os
@@ -8,15 +7,17 @@ import shutil
 import zipfile
 from collections import defaultdict
 from pathlib import Path
-from typing import List, Dict, Optional
+from typing import Dict, List, Optional
 
 import cssutils
+import opencc
+from bs4 import BeautifulSoup as bs
+from bs4 import NavigableString, PageElement, ResultSet, Tag
 from cssutils import CSSParser
 from cssutils.css import CSSStyleSheet
-import opencc
-from bs4 import BeautifulSoup as bs, NavigableString, PageElement, ResultSet, Tag
 
 from epubhv.punctuation import Punctuation
+from epubhv.yomituki import RubySoup, string_containers
 
 cssutils.log.setLevel(logging.CRITICAL)  # type: ignore
 
@@ -68,10 +69,14 @@ class EPUBHV:
         file_path: Path,
         convert_to: Optional[str] = None,
         convert_punctuation: Optional[str] = "auto",
+        need_ruby: bool = False,
     ) -> None:
         # declare instance fields
         self.epub_file: Path
         self.has_css_file: bool = False
+        # for language ruby
+        self.need_ruby: bool = need_ruby
+        self.ruby_language = None
         self.files_dict: Dict[str, List[Path]] = {}
         self.book_path: Path
         self.book_name: str
@@ -135,18 +140,31 @@ class EPUBHV:
         self.opf_file = opf_files[0]
         self.opf_dir = self.opf_file.parent.absolute()
 
+    def __make_ruby_language(self, soup):
+        if self.need_ruby:
+            # if we need ruby we need to find the ruby language
+            languages = soup.find("dc:language")
+            if languages:
+                self.ruby_language = languages.contents[0]
+            else:
+                print(
+                    "There's no language meta data in meta file, we use Japanese as default. we can not ruby it"
+                )
+                self.need_ruby = False
+
     def change_epub_to_vertical(self) -> None:
         """
         steps:
           1. check if have CSS files
           2. check the epub spine `page-progression-direction` add to it
-          3. check `primary-writing-mode` in opf file's meta, if have change it to vertical-rl, if not add it.
-          4. if we have add CSS files we need to check if have `html` attribute
+          3. check `primary-writing-mode` in opf file's meta, if have changed it to vertical-rl, if not add it.
+          4. if we have added CSS files we need to check if have `html` attribute
           5. if have `html` attribute add vertical-rl to it
           6. if have not `html` we add it
           7. if we do not have css file, we add one with html `vertical-rl` and change all the html to add the css files
         """
         soup: bs = load_opf_meta_data(self.opf_file)
+        self.__make_ruby_language(soup)
         # change it to rtl -> right to left
         spine: Optional[Tag | NavigableString] = soup.find("spine")
         assert spine is not None
@@ -236,6 +254,7 @@ html {
           4. check all css files and remove all "writing-mode", "-webkit-writing-mode", "-epub-writing-mode" to make it default that is horizontal
         """
         soup: bs = load_opf_meta_data(self.opf_file)
+        self.__make_ruby_language(soup)
         # change it to ltr -> left to right
         spine: Optional[Tag | NavigableString] = soup.find("spine")
         assert spine is not None
@@ -271,7 +290,7 @@ html {
                     file.write(css_style)  # type: ignore
 
     def convert(self, method: str = "to_vertical") -> None:
-        if self.converter is None:
+        if self.converter is None and not self.need_ruby:
             return
 
         html_file: Path
@@ -283,55 +302,64 @@ html {
             with open(html_file, "r", encoding="utf-8", errors="ignore") as f:
                 content: str = f.read()
             soup: bs = bs(content, "html.parser")
+            if self.converter:
+                html_element: Optional[Tag | NavigableString] = soup.find("html")
+                assert html_element is not None
+                text_elements: ResultSet[PageElement] = html_element.find_all(string=True)  # type: ignore
 
-            html_element: Optional[Tag | NavigableString] = soup.find("html")
-            assert html_element is not None
-            text_elements: ResultSet[PageElement] = html_element.find_all(string=True)  # type: ignore
+                element: Tag
+                for element in text_elements:  # type: ignore
+                    old_text = element.string
+                    if old_text is not None:
+                        new_text = self.converter.convert(old_text)  # type: ignore
+                        punc = self.convert_punctuation
+                        if punc != "none":
+                            if punc == "auto":
+                                if self.convert_to is None:
+                                    punc = "s2t" if method == "to_vertical" else "t2t"
+                                    # default: convert “‘’” to 「『』」 in vertical mode,
+                                    # but not to “‘’” in horizontal mode
+                                else:
+                                    punc = self.convert_to
+                            source, target = punc.split("2")
+                            punc_converter = Punctuation()
+                            new_text = punc_converter.convert(  # type: ignore
+                                new_text,
+                                horizontal=method == "to_horizontal",
+                                source_locale=punc_converter.map_locale(source),  # type: ignore
+                                target_locale=punc_converter.map_locale(target),  # type: ignore
+                            )
+                    element.string.replace_with(new_text)  # type: ignore
+                    html_element.replace_with(html_element)
 
-            element: Tag
-            for element in text_elements:  # type: ignore
-                old_text = element.string
-                if old_text is not None:
-                    new_text = self.converter.convert(old_text)  # type: ignore
-                    punc = self.convert_punctuation
-                    if punc != "none":
-                        if punc == "auto":
-                            if self.convert_to is None:
-                                punc = "s2t" if method == "to_vertical" else "t2t"
-                                # default: convert “‘’” to 「『』」 in vertical mode,
-                                # but not to “‘’” in horizontal mode
-                            else:
-                                punc = self.convert_to
-                        source, target = punc.split("2")
-                        punc_converter = Punctuation()
-                        new_text = punc_converter.convert(  # type: ignore
-                            new_text,
-                            horizontal=method == "to_horizontal",
-                            source_locale=punc_converter.map_locale(source),  # type: ignore
-                            target_locale=punc_converter.map_locale(target),  # type: ignore
-                        )
-                element.string.replace_with(new_text)  # type: ignore
-                html_element.replace_with(html_element)
+                with open(html_file, "w", encoding="utf-8") as file:
+                    html_element.replace_with(html_element)
 
-            with open(html_file, "w", encoding="utf-8") as file:
-                html_element.replace_with(html_element)
-
-            with open(html_file, "w", encoding="utf-8", errors="ignore") as file:
-                file.write(soup.prettify())
+                with open(html_file, "w", encoding="utf-8", errors="ignore") as file:
+                    file.write(soup.prettify())
+            if self.need_ruby:
+                ruby_soup = bs(
+                    content, "html.parser", string_containers=string_containers
+                )
+                # TODO fix this maybe support unruby
+                r = RubySoup(self.ruby_language, True)
+                r.ruby_soup(ruby_soup.body)
+                with open(html_file, "w", encoding="utf-8", errors="ignore") as file:
+                    file.write(ruby_soup.prettify())
 
     def pack(self, method: str = "to_vertical") -> None:
         lang: str = "original"
         if self.convert_to is not None:
             lang = self.convert_to
+        if self.need_ruby:
+            lang = f"{lang}-ruby"
         if method == "to_vertical":
-            book_name_v: str = f"{self.book_name}-v-{lang}.epub"
+            book_name: str = f"{self.book_name}-v-{lang}.epub"
         else:
-            book_name_v: str = f"{self.book_name}-h-{lang}.epub"
+            book_name: str = f"{self.book_name}-h-{lang}.epub"
 
-        shutil.make_archive(
-            base_name=book_name_v, format="zip", root_dir=self.book_path
-        )
-        os.rename(src=book_name_v + ".zip", dst=book_name_v)
+        shutil.make_archive(base_name=book_name, format="zip", root_dir=self.book_path)
+        os.rename(src=book_name + ".zip", dst=book_name)
         shutil.rmtree(self.book_path)
 
     def run(self, method: str = "to_vertical") -> None:

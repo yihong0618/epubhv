@@ -29,6 +29,8 @@ epubhv tests/test_epub # will generate all epub files to epub-v
 
 # you can specify the punctuation style
 epubhv e.epub --convert s2t --punctuation auto
+# you can add `ruby` for Japanese(furigana) and Chinese(pinyin) 
+epubhv e.epub --h --ruby
 ```
 
 ## Contribution
@@ -54,6 +56,7 @@ pdm run all
 - @[jiak94](https://github.com/jiak94) support OpenCC
 - @[OverflowCat ](https://github.com/OverflowCat) add punctuation styles.
 - @[jt-wang](https://github.com/jt-wang) Type and PDM!
+- [furigana4epub](https://github.com/Mumumu4/furigana4epub)
 
 ## Similar projects
 

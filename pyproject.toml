@@ -11,6 +11,10 @@ dependencies = [
     "opencc-python-reimplemented==0.1.7",
     "soupsieve==2.5",
     "typed-argument-parser==1.8.1",
+    "jieba",
+    "pypinyin",
+    "unidic_lite",
+    "fugashi"
 ]
 
 requires-python = ">=3.8"
