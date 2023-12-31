@@ -12,6 +12,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+      - name: install mecab
+        run: |
+          sudo apt-get -y install mecab
       - name: install python 3.9
         uses: actions/setup-python@v4
         with:
