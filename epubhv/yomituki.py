@@ -14,7 +14,7 @@ from bs4.element import NavigableString, Script, Stylesheet, Tag, TemplateString
 from fugashi import Tagger
 from pypinyin import pinyin
 
-tagger = Tagger()
+tagger = Tagger()  # pyright: ignore
 
 katakana_chart = "ァアィイゥウェエォオカガキギクグケゲコゴサザシジスズセゼソゾタダチヂッツヅテデトドナニヌネノハバパヒビピフブプヘベペホボポマミムメモャヤュユョヨラリルレロヮワヰヱヲンヴヵヶヽヾ"
 hiragana_chart = "ぁあぃいぅうぇえぉおかがきぎくぐけげこごさざしじすずせぜそぞただちぢっつづてでとどなにぬねのはばぱひびぴふぶぷへべぺほぼぽまみむめもゃやゅゆょよらりるれろゎわゐゑをんゔゕゖゝゞ"

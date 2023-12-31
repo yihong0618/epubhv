@@ -17,7 +17,7 @@ from cssutils import CSSParser
 from cssutils.css import CSSStyleSheet
 
 from epubhv.punctuation import Punctuation
-from epubhv.yomituki import RubySoup, string_containers
+from epubhv.yomituki import RubySoup, string_containers  # pyright: ignore
 
 cssutils.log.setLevel(logging.CRITICAL)  # type: ignore
 

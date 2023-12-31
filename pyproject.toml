@@ -53,6 +53,7 @@ exclude = [
     "**/__pycache__",
     "src/experimental",
     "src/typestubs",
+    "epubhv/yomituki.py"
 ]
 defineConstant = { DEBUG = true }
 
