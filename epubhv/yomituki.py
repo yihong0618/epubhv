@@ -176,8 +176,6 @@ class RubySoup:
                     if ele.strip():
                         for ele2 in self.ruby_navigablestring(ele):
                             new_i.append(ele2)
-                    elif ele:
-                        new_i.append(ele)
                 i.replace_with(new_i)
                 new_i.unwrap()
             elif isinstance(i, Tag) and i.name not in ("ruby", "rt", "rp"):
@@ -188,7 +186,7 @@ class RubySoup:
         for k, g in groupby(yomi, lambda x: type(x)):
             if k is None:
                 continue
-            if k == str:
+            elif k == str:
                 yield "".join(g)
             else:
                 yield self.ruby_wraps_bs4(g)
