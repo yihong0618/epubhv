@@ -35,6 +35,8 @@ epubhv e.epub --h --ruby
 epubhv f.epub --h --ruby --cantonese
 ```
 
+**About [cantonese](https://jyutping.org/docs/cantonese/)** 
+
 ## Contribution
 
 - Any issues or PRs are welcome.
