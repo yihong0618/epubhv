@@ -13,6 +13,7 @@ from bs4 import BeautifulSoup
 from bs4.element import NavigableString, Script, Stylesheet, Tag, TemplateString
 from fugashi import Tagger
 from pypinyin import pinyin
+from ToJyutping import get_jyutping_list
 
 tagger = Tagger()  # pyright: ignore
 
@@ -94,6 +95,14 @@ def hantei_chinese(word):
     return word, True, pin
 
 
+def hantei_cantonese(word):
+    # follow the old api for Chinese pinyin for cantonese
+    if word[1] is not None:
+        return word[0] + f"({word[1]})", False, None
+    else:
+        return word[0], False, None
+
+
 def cut_end(text, hira):
     if text[-1] == hira[-1]:
         for i in range(1, min(len(hira), len(text))):
@@ -106,13 +115,21 @@ def cut_end(text, hira):
 
 
 def yomituki(sentence, lang="zh"):
-    assert lang in ["zh", "ja"], "Language must zh or ja"
-    if lang == "zh":
+    assert lang in ["zh", "zh-cn", "zh-tw", "ja", "cantonese"], "Language must zh or ja"
+    if lang in ["zh", "zh-cn"]:
         words_list = jieba.cut(sentence)
         hantei = hantei_chinese
     elif lang == "ja":
         words_list = tagger(sentence)
         hantei = hantei_japanese
+    elif lang in ["cantonese"]:
+        text_list = get_jyutping_list(sentence)
+        text_list = [i[1] for i in text_list if i[1] is not None]
+        if text_list:
+            yield f"{sentence}({' '.join(text_list)})"
+        else:
+            yield sentence
+        return
     for text, ruby, yomi in map(hantei, words_list):
         if ruby:
             yield from cut_end(text, yomi)
@@ -130,11 +147,11 @@ def tag_wrap(name, str):
     return new_tag
 
 
-def ruby_text(text, lang="cn"):
+def ruby_text(text, lang="zh"):
     plain = ""
     if len(text) < 1:
         return plain
-    yomi = yomituki(text, lang="zh")
+    yomi = yomituki(text, lang=lang)
     for i in yomi:
         if i in (None, ""):
             continue
@@ -167,8 +184,7 @@ class RubySoup:
                 self.ruby_soup(i)
 
     def ruby_navigablestring(self, navigablestring):
-        string = str(navigablestring)
-        yomi = yomituki(string, lang=self.ruby_language)
+        yomi = yomituki(str(navigablestring), lang=self.ruby_language)
         for k, g in groupby(yomi, lambda x: type(x)):
             if k is None:
                 continue

@@ -1,6 +1,6 @@
 [project]
 name = "epubhv"
-version = "0.4.1"
+version = "0.5.0"
 description = "make your epub books vertical or horizontal."
 authors = [{ name = "yihong0618", email = "zouzou0208@gmail.com" }]
 
@@ -14,7 +14,9 @@ dependencies = [
     "jieba",
     "pypinyin",
     "unidic_lite",
-    "fugashi"
+    "fugashi",
+    "langdetect",
+    "ToJyutping",
 ]
 
 requires-python = ">=3.8"

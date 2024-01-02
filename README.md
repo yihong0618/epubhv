@@ -31,6 +31,8 @@ epubhv tests/test_epub # will generate all epub files to epub-v
 epubhv e.epub --convert s2t --punctuation auto
 # you can add `ruby` for Japanese(furigana) and Chinese(pinyin) 
 epubhv e.epub --h --ruby
+# if you want to learn `cantonese` 粤语
+epubhv f.epub --h --ruby --cantonese
 ```
 
 ## Contribution
@@ -57,6 +59,7 @@ pdm run all
 - @[OverflowCat ](https://github.com/OverflowCat) add punctuation styles.
 - @[jt-wang](https://github.com/jt-wang) Type and PDM!
 - [furigana4epub](https://github.com/Mumumu4/furigana4epub)
+- [ToJyutping](https://github.com/CanCLID/ToJyutping)
 
 ## Similar projects
 
@@ -69,4 +72,3 @@ pdm run all
 ![image](https://github.com/yihong0618/epubhv/assets/15976103/6c6d77fc-6d3c-4814-b37c-badeba38cd03)
 ![image](https://github.com/yihong0618/epubhv/assets/15976103/d8526e7c-abd2-42e2-92c8-d32300cec343)
 ![image](https://github.com/yihong0618/epubhv/assets/15976103/685b789f-1850-43ed-b695-a70f86ec7dd0)
-

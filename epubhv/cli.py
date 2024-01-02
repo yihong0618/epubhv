@@ -13,6 +13,7 @@ class Options:
     convert: str
     punctuation: str
     ruby: bool
+    cantonese: bool
 
 
 def main() -> None:
@@ -35,6 +36,12 @@ def main() -> None:
         dest="ruby",
         action="store_true",
         help="Ruby it for Chinese and Japanese.",
+    )
+    parser.add_argument(
+        "--cantonese",
+        dest="cantonese",
+        action="store_true",
+        help="Ruby it for cantonese.",
     )
 
     parser.add_argument(
@@ -97,8 +104,8 @@ tw2t: Traditional Chinese (OpenCC Standard) to Traditional Chinese (Taiwan stand
         convert=raw_args.convert,
         punctuation=raw_args.punctuation,
         ruby=raw_args.ruby,
+        cantonese=raw_args.cantonese,
     )
-
     epub_files = Path(options.epub)
     # default is to to_vertical
     method: str = "to_vertical"
@@ -118,6 +125,7 @@ tw2t: Traditional Chinese (OpenCC Standard) to Traditional Chinese (Taiwan stand
                         convert_to=options.convert,
                         convert_punctuation=options.punctuation,
                         need_ruby=options.ruby,
+                        need_cantonese=options.cantonese,
                     )
                     epubhv.run(method=method)
                 except Exception as e:
@@ -125,7 +133,10 @@ tw2t: Traditional Chinese (OpenCC Standard) to Traditional Chinese (Taiwan stand
         else:
             print(f"{str(epub_files)} is {method}")
             epubhv: EPUBHV = EPUBHV(
-                file_path=epub_files, convert_to=options.convert, need_ruby=options.ruby
+                file_path=epub_files,
+                convert_to=options.convert,
+                need_ruby=options.ruby,
+                need_cantonese=options.cantonese,
             )
             epubhv.run(method=method)
     else:

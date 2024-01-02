@@ -5,7 +5,7 @@ import logging
 import os
 import shutil
 import zipfile
-from collections import defaultdict
+from collections import defaultdict, Counter
 from pathlib import Path
 from typing import Dict, List, Optional
 
@@ -18,6 +18,8 @@ from cssutils.css import CSSStyleSheet
 
 from epubhv.punctuation import Punctuation
 from epubhv.yomituki import RubySoup, string_containers  # pyright: ignore
+from langdetect import detect, LangDetectException
+
 
 cssutils.log.setLevel(logging.CRITICAL)  # type: ignore
 
@@ -70,6 +72,7 @@ class EPUBHV:
         convert_to: Optional[str] = None,
         convert_punctuation: Optional[str] = "auto",
         need_ruby: bool = False,
+        need_cantonese: bool = False,
     ) -> None:
         # declare instance fields
         self.epub_file: Path
@@ -77,7 +80,9 @@ class EPUBHV:
         # for language ruby
         self.need_ruby: bool = need_ruby
         self.ruby_language = None
+        self.cantonese = need_cantonese
         self.files_dict: Dict[str, List[Path]] = {}
+        self.content_files_list: List[Path] = []
         self.book_path: Path
         self.book_name: str
         self.opf_file: Path
@@ -135,18 +140,50 @@ class EPUBHV:
         """
         self.extract_one_epub_to_dir()
         self.files_dict = make_epub_files_dict(self.book_path)
+        self.content_files_list = (
+            self.files_dict.get(".html", [])
+            + self.files_dict.get(".xhtml", [])
+            + self.files_dict.get(".htm", [])
+        )
         opf_files = self.files_dict.get(".opf", [])
         assert len(opf_files) == 1, "Epub must have only one opf file"
         self.opf_file = opf_files[0]
         self.opf_dir = self.opf_file.parent.absolute()
 
-    def __make_ruby_language(self, soup):
+    def __detect_language(self):
+        c = Counter()
+        for f in self.content_files_list:
+            with open(f, "r", encoding="utf-8", errors="ignore") as f:
+                content: str = f.read()
+            sp: bs = bs(content, "html.parser")
+            if sp.body:
+                body_text: str = sp.body.get_text()
+                try:
+                    language = detect(body_text)
+                    c[language] += 1
+                except LangDetectException:
+                    pass
+        if c:
+            language = c.most_common()[0][0]
+            # WTF sometimes Chinese will detect as ko?
+            # TODO change to a better detect
+            if language in ["ko", "zh-tw"]:
+                self.ruby_language = "cantonese" if self.cantonese else language
+                self.need_ruby = True
+            elif language in ["ja"]:
+                self.ruby_language = "ja"
+                self.need_ruby = True
+            elif language in ["zh", "zh-cn"]:
+                self.ruby_language = "zh"
+                self.need_ruby = True
+
+    def _make_ruby_language(self, soup):
         if self.need_ruby:
             # if we need ruby we need to find the ruby language
             languages = soup.find("dc:language")
-            if languages:
+            if languages and 0:
                 language = languages.contents[0]
-                if language in ["ja", "zh"]:
+                if language in ["ja", "zh", "zh-cn"]:
                     self.ruby_language = language
                     self.need_ruby = True
                 else:
@@ -154,12 +191,13 @@ class EPUBHV:
                         f"Ruby feature do not support this language -> {language}, \n for book: {self.book_name} we will ignore it."
                     )
                     self.need_ruby = False
-
             else:
-                print(
-                    "There's no language meta data in meta file, we use Japanese as default. we can not ruby it"
-                )
-                self.need_ruby = False
+                self.__detect_language()
+                if not self.ruby_language:
+                    print(
+                        "There's no language meta data in meta file and can not detect the language, we use Japanese as default. we can not ruby it"
+                    )
+                    self.need_ruby = False
 
     def change_epub_to_vertical(self) -> None:
         """
@@ -173,7 +211,7 @@ class EPUBHV:
           7. if we do not have css file, we add one with html `vertical-rl` and change all the html to add the css files
         """
         soup: bs = load_opf_meta_data(self.opf_file)
-        self.__make_ruby_language(soup)
+        self._make_ruby_language(soup)
         # change it to rtl -> right to left
         spine: Optional[Tag | NavigableString] = soup.find("spine")
         assert spine is not None
@@ -243,11 +281,7 @@ html {
             )
             # then we need to change all html files
             f: Path
-            for f in (
-                self.files_dict.get(".html", [])
-                + self.files_dict.get(".xhtml", [])
-                + self.files_dict.get(".htm", [])
-            ):
+            for f in self.content_files_list:
                 self._add_stylesheet_to_html(
                     html_file_path=f, stylesheet_line=V_STYLE_LINE
                 )
@@ -263,7 +297,7 @@ html {
           4. check all css files and remove all "writing-mode", "-webkit-writing-mode", "-epub-writing-mode" to make it default that is horizontal
         """
         soup: bs = load_opf_meta_data(self.opf_file)
-        self.__make_ruby_language(soup)
+        self._make_ruby_language(soup)
         # change it to ltr -> left to right
         spine: Optional[Tag | NavigableString] = soup.find("spine")
         assert spine is not None
@@ -303,11 +337,7 @@ html {
             return
 
         html_file: Path
-        for html_file in (
-            self.files_dict.get(".html", [])
-            + self.files_dict.get(".xhtml", [])
-            + self.files_dict.get(".htm", [])
-        ):
+        for html_file in self.content_files_list:
             with open(html_file, "r", encoding="utf-8", errors="ignore") as f:
                 content: str = f.read()
             soup: bs = bs(content, "html.parser")
@@ -353,7 +383,7 @@ html {
                 # TODO fix this maybe support unruby
                 r = RubySoup(self.ruby_language, True)
                 r.ruby_soup(ruby_soup.body)
-                with open(html_file, "w", encoding="utf-8", errors="ignore") as file:
+                with open(html_file, "w", encoding="utf-8") as file:
                     file.write(ruby_soup.prettify())
 
     def pack(self, method: str = "to_vertical") -> None:

@@ -22,6 +22,7 @@ def epub() -> EPUBHV:
 def test_find_epub_books() -> None:
     assert list_all_epub_in_dir(Path("tests/test_epub")) == {
         Path("tests/test_epub/animal_farm.epub"),
+        Path("tests/test_epub/books/animal.epub"),
         Path("tests/test_epub/Liber_Esther.epub"),
         Path("tests/test_epub/books/lemo.epub"),
         Path("tests/test_epub/sanguo.epub"),
@@ -104,6 +105,18 @@ def test_ruby() -> None:
     assert f.ruby_language == "ja"
     assert lemo_output.exists()
     lemo_output.unlink(True)
+
+
+def test_cantonese() -> None:
+    animal_output = Path("animal-h-original-ruby.epub")
+    animal_output.unlink(True)
+    f: EPUBHV = EPUBHV(
+        Path("tests/test_epub/books/animal.epub"), need_ruby=True, need_cantonese=True
+    )
+    f.run("to_horizontal")
+    assert f.ruby_language == "cantonese"
+    assert animal_output.exists()
+    animal_output.unlink(True)
 
 
 def test_punctuation():
