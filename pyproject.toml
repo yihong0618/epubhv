@@ -1,6 +1,6 @@
 [project]
 name = "epubhv"
-version = "0.5.1"
+version = "0.5.2"
 description = "make your epub books vertical or horizontal."
 authors = [{ name = "yihong0618", email = "zouzou0208@gmail.com" }]
 

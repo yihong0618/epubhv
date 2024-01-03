@@ -98,7 +98,7 @@ def hantei_chinese(word):
 def hantei_cantonese(word):
     # follow the old api for Chinese pinyin for cantonese
     if word[1] is not None:
-        return word[0] + f"({word[1]})", False, None
+        return word[0], True, word[1] + ", "
     else:
         return word[0], False, None
 
@@ -123,13 +123,8 @@ def yomituki(sentence, lang="zh"):
         words_list = tagger(sentence)
         hantei = hantei_japanese
     elif lang in ["cantonese"]:
-        text_list = get_jyutping_list(sentence)
-        text_list = [i[1] for i in text_list if i[1] is not None]
-        if text_list:
-            yield f"{sentence}({' '.join(text_list)})"
-        else:
-            yield sentence
-        return
+        words_list = get_jyutping_list(sentence)
+        hantei = hantei_cantonese
     for text, ruby, yomi in map(hantei, words_list):
         if ruby:
             yield from cut_end(text, yomi)
