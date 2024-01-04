@@ -19,7 +19,7 @@ dependencies = [
     "ToJyutping",
 ]
 
-requires-python = ">=3.8"
+requires-python = ">=3.8,!=3.9.7"
 readme = "README.md"
 license = { text = "MIT" }
 
@@ -28,6 +28,11 @@ Homepage = "https://github.com/yihong0618/epubhv"
 
 [project.scripts]
 epubhv = "epubhv.cli:main"
+
+[project.optional-dependencies]
+web = [
+    "streamlit>=1.29.0",
+]
 [build-system]
 requires = ["pdm-backend"]
 build-backend = "pdm.backend"

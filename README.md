@@ -11,7 +11,22 @@ git clone https://github.com/yihong0618/epubhv.git
 cd epubhv && bash ./setup.sh
 ```
 
-## Use
+## Using pipx
+
+If you are using [pipx](https://pypi.org/project/pipx/), you can directly run `epubhv` with:
+
+```console
+pipx run epubhv a.epub
+```
+
+## Use the web
+
+```console
+pip install epubhv[web]
+streamlit run web.py
+```
+
+## Use CLI
 
 ```console
 epubhv a.epub # will generate a file a-v.epub that is vertical
@@ -29,13 +44,13 @@ epubhv tests/test_epub # will generate all epub files to epub-v
 
 # you can specify the punctuation style
 epubhv e.epub --convert s2t --punctuation auto
-# you can add `ruby` for Japanese(furigana) and Chinese(pinyin) 
+# you can add `ruby` for Japanese(furigana) and Chinese(pinyin)
 epubhv e.epub --h --ruby
 # if you want to learn `cantonese` 粤语
 epubhv f.epub --h --ruby --cantonese
 ```
 
-**About [cantonese](https://jyutping.org/docs/cantonese/)** 
+**About [cantonese](https://jyutping.org/docs/cantonese/)**
 
 ## Contribution
 
