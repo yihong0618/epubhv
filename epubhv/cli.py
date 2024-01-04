@@ -56,7 +56,7 @@ def main() -> None:
     parser.add_argument(
         "--punctuation",
         dest="punctuation",
-        choices=["auto", "t2s", "s2t", "s2s", "t2t", "none"],
+        choices=["auto", "t2s", "s2t", "none"],
         default="auto",
         help="""convert punctuation to specific locale and direction (default: auto)
 

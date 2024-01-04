@@ -378,7 +378,7 @@ html {
                 with open(html_file, "w", encoding="utf-8") as file:
                     file.write(ruby_soup.prettify())
 
-    def pack(self, method: str = "to_vertical", dest: Path = Path.cwd()) -> None:
+    def pack(self, method: str = "to_vertical", dest: Path = Path.cwd()) -> Path:
         lang = "original"
         if self.convert_to is not None:
             lang = self.convert_to
@@ -395,8 +395,9 @@ html {
         )
         os.rename(src=f"{pack_to}.zip", dst=pack_to)
         shutil.rmtree(self.book_path)
+        return pack_to
 
-    def run(self, method: str = "to_vertical", dest: Path = Path.cwd()) -> None:
+    def run(self, method: str = "to_vertical", dest: Path = Path.cwd()) -> Path:
         assert method in [
             "to_horizontal",
             "to_vertical",
@@ -411,4 +412,4 @@ html {
             raise Exception("Only support epub to vertical or horizontal for now")
 
         self.convert(method=method)
-        self.pack(method=method, dest=dest)
+        return self.pack(method=method, dest=dest)
