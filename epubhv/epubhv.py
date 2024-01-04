@@ -5,7 +5,7 @@ import logging
 import os
 import shutil
 import zipfile
-from collections import defaultdict, Counter
+from collections import Counter, defaultdict
 from pathlib import Path
 from typing import Dict, List, Optional
 
@@ -15,11 +15,10 @@ from bs4 import BeautifulSoup as bs
 from bs4 import NavigableString, PageElement, ResultSet, Tag
 from cssutils import CSSParser
 from cssutils.css import CSSStyleSheet
+from langdetect import LangDetectException, detect
 
 from epubhv.punctuation import Punctuation
 from epubhv.yomituki import RubySoup, string_containers  # pyright: ignore
-from langdetect import detect, LangDetectException
-
 
 cssutils.log.setLevel(logging.CRITICAL)  # type: ignore
 
@@ -66,16 +65,20 @@ def load_opf_meta_data(opf_file: Path) -> bs:
 
 
 class EPUBHV:
+    book_path: Path
+    book_name: str
+    opf_file: Path
+
     def __init__(
         self,
         file_path: Path,
         convert_to: Optional[str] = None,
-        convert_punctuation: Optional[str] = "auto",
+        convert_punctuation: str = "auto",
         need_ruby: bool = False,
         need_cantonese: bool = False,
     ) -> None:
         # declare instance fields
-        self.epub_file: Path
+        self.epub_file = file_path
         self.has_css_file: bool = False
         # for language ruby
         self.need_ruby: bool = need_ruby
@@ -83,23 +86,10 @@ class EPUBHV:
         self.cantonese = need_cantonese
         self.files_dict: Dict[str, List[Path]] = {}
         self.content_files_list: List[Path] = []
-        self.book_path: Path
-        self.book_name: str
-        self.opf_file: Path
-        self.converter: Optional[opencc.OpenCC]
-        self.convert_to: Optional[str]
-        self.convert_punctuation: str = "auto"
+        self.convert_punctuation = convert_punctuation
+        self.convert_to = convert_to
 
-        # initialize instance fields
-        self.epub_file = file_path
-        if convert_to is not None:
-            self.converter = opencc.OpenCC(convert_to)
-            self.convert_to = convert_to
-        else:
-            self.converter = None
-            self.convert_to = None
-        if convert_punctuation:
-            self.convert_punctuation = convert_punctuation
+        self.converter = opencc.OpenCC(convert_to) if convert_to is not None else None
 
     def extract_one_epub_to_dir(self) -> None:
         assert self.epub_file.suffix == ".epub", f"{self.epub_file} Must be epub file"
@@ -342,9 +332,11 @@ html {
                 content: str = f.read()
             soup: bs = bs(content, "html.parser")
             if self.converter:
-                html_element: Optional[Tag | NavigableString] = soup.find("html")
-                assert html_element is not None
-                text_elements: ResultSet[PageElement] = html_element.find_all(string=True)  # type: ignore
+                html_element = soup.find("html")
+                assert isinstance(html_element, Tag)
+                text_elements: ResultSet[PageElement] = html_element.find_all(
+                    string=True
+                )  # type: ignore
 
                 element: Tag
                 for element in text_elements:  # type: ignore
@@ -386,22 +378,25 @@ html {
                 with open(html_file, "w", encoding="utf-8") as file:
                     file.write(ruby_soup.prettify())
 
-    def pack(self, method: str = "to_vertical") -> None:
-        lang: str = "original"
+    def pack(self, method: str = "to_vertical", dest: Path = Path.cwd()) -> None:
+        lang = "original"
         if self.convert_to is not None:
             lang = self.convert_to
         if self.need_ruby:
             lang = f"{lang}-ruby"
         if method == "to_vertical":
-            book_name: str = f"{self.book_name}-v-{lang}.epub"
+            book_name = f"{self.book_name}-v-{lang}.epub"
         else:
-            book_name: str = f"{self.book_name}-h-{lang}.epub"
+            book_name = f"{self.book_name}-h-{lang}.epub"
+        pack_to = dest / book_name
 
-        shutil.make_archive(base_name=book_name, format="zip", root_dir=self.book_path)
-        os.rename(src=book_name + ".zip", dst=book_name)
+        shutil.make_archive(
+            base_name=str(pack_to), format="zip", root_dir=self.book_path
+        )
+        os.rename(src=f"{pack_to}.zip", dst=pack_to)
         shutil.rmtree(self.book_path)
 
-    def run(self, method: str = "to_vertical") -> None:
+    def run(self, method: str = "to_vertical", dest: Path = Path.cwd()) -> None:
         assert method in [
             "to_horizontal",
             "to_vertical",
@@ -416,4 +411,4 @@ html {
             raise Exception("Only support epub to vertical or horizontal for now")
 
         self.convert(method=method)
-        self.pack(method=method)
+        self.pack(method=method, dest=dest)

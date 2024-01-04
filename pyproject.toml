@@ -33,7 +33,7 @@ requires = ["pdm-backend"]
 build-backend = "pdm.backend"
 
 [tool.pdm.build]
-include = ["epubhv"]
+includes = ["epubhv"]
 
 [tool.pdm.scripts]
 format = "black ."
