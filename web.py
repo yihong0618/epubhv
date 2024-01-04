@@ -88,12 +88,7 @@ with st.form(key="my_form"):
     )
     need_ruby = st.checkbox("Need ruby", key="need_ruby")
     need_cantonese = st.checkbox("Need cantonese", key="need_cantonese")
-    punctuation = st.selectbox(
-        "Transform punctuation",
-        options=["auto", "t2s", "s2t", "none"],
-        format_func=LABELS.__getitem__,
-        key="punctuation",
-    )
+
     convert = st.selectbox(
         "Transform text",
         options=[
@@ -115,5 +110,11 @@ with st.form(key="my_form"):
         ],
         format_func=LABELS.__getitem__,
         key="convert",
+    )
+    punctuation = st.selectbox(
+        "Transform punctuation",
+        options=["auto", "t2s", "s2t", "none"],
+        format_func=LABELS.__getitem__,
+        key="punctuation",
     )
     st.form_submit_button(label="Transform", on_click=run)
