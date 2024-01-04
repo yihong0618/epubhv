@@ -77,6 +77,7 @@ pdm run all
 - @[jt-wang](https://github.com/jt-wang) Type and PDM!
 - [furigana4epub](https://github.com/Mumumu4/furigana4epub)
 - [ToJyutping](https://github.com/CanCLID/ToJyutping)
+- [PDM](https://pdm.fming.dev/latest/)
 
 ## Similar projects
 
