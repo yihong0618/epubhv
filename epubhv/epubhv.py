@@ -332,8 +332,8 @@ html {
                 content: str = f.read()
             soup: bs = bs(content, "html.parser")
             if self.converter:
-                html_element: Optional[Tag | NavigableString] = soup.find("html")
-                assert html_element is not None
+                html_element = soup.find("html")
+                assert isinstance(html_element, Tag)
                 text_elements: ResultSet[PageElement] = html_element.find_all(
                     string=True
                 )  # type: ignore
