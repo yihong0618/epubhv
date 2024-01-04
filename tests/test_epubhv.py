@@ -1,4 +1,3 @@
-import os
 from pathlib import Path
 from shutil import rmtree
 from typing import Dict, List
@@ -13,19 +12,21 @@ from epubhv.epubhv import (
     make_epub_files_dict,
 )
 
+TEST_DIR = Path(__file__).with_name("test_epub")
+
 
 @pytest.fixture
 def epub() -> EPUBHV:
-    return EPUBHV(file_path=Path("tests/test_epub/animal_farm.epub"))
+    return EPUBHV(file_path=TEST_DIR / "animal_farm.epub")
 
 
 def test_find_epub_books() -> None:
-    assert list_all_epub_in_dir(Path("tests/test_epub")) == {
-        Path("tests/test_epub/animal_farm.epub"),
-        Path("tests/test_epub/books/animal.epub"),
-        Path("tests/test_epub/Liber_Esther.epub"),
-        Path("tests/test_epub/books/lemo.epub"),
-        Path("tests/test_epub/sanguo.epub"),
+    assert list_all_epub_in_dir(TEST_DIR) == {
+        TEST_DIR / "animal_farm.epub",
+        TEST_DIR / "books/animal.epub",
+        TEST_DIR / "Liber_Esther.epub",
+        TEST_DIR / "books/lemo.epub",
+        TEST_DIR / "sanguo.epub",
     }
 
 
@@ -47,38 +48,29 @@ def test_make_files_dict(epub: EPUBHV) -> None:
     rmtree(".epub_temp_dir/animal_farm")
 
 
-def test_change_epub_to_vertical():
-    epub_file = Path("animal_farm-v-original.epub")
-    epub_file.unlink(True)
-    b = EPUBHV(Path("tests/test_epub/animal_farm.epub"))
-    b.run()
-    assert b.opf_file == Path(".epub_temp_dir/animal_farm/content.opf")
-    epub_file.unlink(True)
+def test_change_epub_to_vertical(epub: EPUBHV, tmp_path: Path) -> None:
+    epub.run(dest=tmp_path)
+    assert epub.opf_file == Path(".epub_temp_dir/animal_farm/content.opf")
+    assert tmp_path.joinpath("animal_farm-v-original.epub").exists()
 
 
-def test_find_epub_css_files():
-    lemo_output = Path("lemo-h-original.epub")
-    lemo_output.unlink(True)
-    b = EPUBHV(Path("tests/test_epub/animal_farm.epub"))
+def test_find_epub_css_files(tmp_path: Path) -> None:
+    lemo_output = tmp_path / "lemo-h-original.epub"
+    b = EPUBHV(TEST_DIR / "animal_farm.epub")
     b.make_epub_values()
     assert b.has_css_file is False
-    b.run()
-    os.remove("animal_farm-v-original.epub")
-    f: EPUBHV = EPUBHV(Path("tests/test_epub/books/lemo.epub"))
-    f.run("to_horizontal")
+    b.run(dest=tmp_path)
+
+    f = EPUBHV(TEST_DIR / "books/lemo.epub")
+    f.run("to_horizontal", dest=tmp_path)
     assert lemo_output.exists()
-    lemo_output.unlink(True)
 
 
-def test_change_epub_covert() -> None:
-    if os.path.exists("sanguo-v-s2t-v-original.epub"):
-        os.remove("sanguo-v-s2t-v-original.epub")
-    if os.path.exists("sanguo-v-s2t.epub"):
-        os.remove("sanguo-v-s2t.epub")
-    f: EPUBHV = EPUBHV(Path("tests/test_epub/sanguo.epub"), "s2t")
-    f.run("to_vertical")
-    assert os.path.exists("sanguo-v-s2t.epub") is True
-    q: EPUBHV = EPUBHV(Path("sanguo-v-s2t.epub"))
+def test_change_epub_covert(tmp_path: Path) -> None:
+    f = EPUBHV(TEST_DIR / "sanguo.epub", "s2t")
+    f.run("to_vertical", dest=tmp_path)
+    assert tmp_path.joinpath("sanguo-v-s2t.epub").exists()
+    q = EPUBHV(tmp_path.joinpath("sanguo-v-s2t.epub"))
     q.extract_one_epub_to_dir()
     q.make_epub_values()
     has_t_count: int = 0
@@ -92,31 +84,23 @@ def test_change_epub_covert() -> None:
             if r.find("滾滾長江東逝水") > 0:
                 has_t_count += 1
     assert has_t_count > 0
-    q.run("to_vertical")
-    os.remove("sanguo-v-s2t.epub")
-    os.remove("sanguo-v-s2t-v-original.epub")
+    q.run("to_vertical", dest=tmp_path)
 
 
-def test_ruby() -> None:
-    lemo_output = Path("lemo-h-original-ruby.epub")
-    lemo_output.unlink(True)
-    f: EPUBHV = EPUBHV(Path("tests/test_epub/books/lemo.epub"), need_ruby=True)
-    f.run("to_horizontal")
+def test_ruby(tmp_path: Path) -> None:
+    lemo_output = tmp_path / "lemo-h-original-ruby.epub"
+    f = EPUBHV(TEST_DIR / "books/lemo.epub", need_ruby=True)
+    f.run("to_horizontal", dest=tmp_path)
     assert f.ruby_language == "ja"
     assert lemo_output.exists()
-    lemo_output.unlink(True)
 
 
-def test_cantonese() -> None:
-    animal_output = Path("animal-h-original-ruby.epub")
-    animal_output.unlink(True)
-    f: EPUBHV = EPUBHV(
-        Path("tests/test_epub/books/animal.epub"), need_ruby=True, need_cantonese=True
-    )
-    f.run("to_horizontal")
+def test_cantonese(tmp_path: Path) -> None:
+    animal_output = tmp_path / "animal-h-original-ruby.epub"
+    f = EPUBHV(TEST_DIR / "books/animal.epub", need_ruby=True, need_cantonese=True)
+    f.run("to_horizontal", dest=tmp_path)
     assert f.ruby_language == "cantonese"
     assert animal_output.exists()
-    animal_output.unlink(True)
 
 
 def test_punctuation():

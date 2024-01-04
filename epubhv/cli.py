@@ -1,34 +1,36 @@
-from dataclasses import dataclass
+from argparse import ArgumentParser, RawTextHelpFormatter
 from pathlib import Path
-from argparse import ArgumentParser, Namespace, RawTextHelpFormatter
+from typing import cast
 
 from epubhv.epubhv import EPUBHV, list_all_epub_in_dir
 
 
-@dataclass
 class Options:
     epub: str
-    v: bool
-    h: bool
+    method: str
     convert: str
     punctuation: str
     ruby: bool
     cantonese: bool
+    dest: Path
 
 
 def main() -> None:
-    parser: ArgumentParser = ArgumentParser(formatter_class=RawTextHelpFormatter)
+    parser = ArgumentParser(formatter_class=RawTextHelpFormatter)
     parser.add_argument("epub", help="file or dir that contains epub files to change")
     parser.add_argument(
         "--v",
-        dest="v",
-        action="store_true",
+        dest="method",
+        action="store_const",
+        const="to_vertical",
+        default="to_vertical",
         help="change all the epub files to vertical.",
     )
     parser.add_argument(
         "--h",
-        dest="h",
-        action="store_true",
+        dest="method",
+        action="store_const",
+        const="to_horizontal",
         help="change all the epub files to hortical.",
     )
     parser.add_argument(
@@ -42,6 +44,13 @@ def main() -> None:
         dest="cantonese",
         action="store_true",
         help="Ruby it for cantonese.",
+    )
+    parser.add_argument(
+        "-d",
+        "--dest",
+        help="destination dir to save the epub files, default to current directory",
+        default=".",
+        type=Path,
     )
 
     parser.add_argument(
@@ -96,29 +105,14 @@ tw2t: Traditional Chinese (OpenCC Standard) to Traditional Chinese (Taiwan stand
         """,
     )
 
-    raw_args: Namespace = parser.parse_args()
-    options: Options = Options(
-        epub=raw_args.epub,
-        v=raw_args.v,
-        h=raw_args.h,
-        convert=raw_args.convert,
-        punctuation=raw_args.punctuation,
-        ruby=raw_args.ruby,
-        cantonese=raw_args.cantonese,
-    )
+    options = cast(Options, parser.parse_args())
     epub_files = Path(options.epub)
-    # default is to to_vertical
-    method: str = "to_vertical"
-    if options.h:
-        method = "to_horizontal"
-    elif options.v:
-        method = "to_vertical"
     if epub_files.exists():
         if epub_files.is_dir():
             files: set[Path] = list_all_epub_in_dir(path=epub_files)
             f: Path
             for f in files:
-                print(f"{str(f)} is {method}")
+                print(f"{str(f)} is {options.method}")
                 try:
                     epubhv: EPUBHV = EPUBHV(
                         file_path=f,
@@ -127,18 +121,18 @@ tw2t: Traditional Chinese (OpenCC Standard) to Traditional Chinese (Taiwan stand
                         need_ruby=options.ruby,
                         need_cantonese=options.cantonese,
                     )
-                    epubhv.run(method=method)
+                    epubhv.run(method=options.method, dest=options.dest)
                 except Exception as e:
-                    print(f"{str(f)} {method} is failed by {str(e)}")
+                    print(f"{str(f)} {options.method} is failed by {str(e)}")
         else:
-            print(f"{str(epub_files)} is {method}")
+            print(f"{str(epub_files)} is {options.method}")
             epubhv: EPUBHV = EPUBHV(
                 file_path=epub_files,
                 convert_to=options.convert,
                 need_ruby=options.ruby,
                 need_cantonese=options.cantonese,
             )
-            epubhv.run(method=method)
+            epubhv.run(method=options.method, dest=options.dest)
     else:
         raise Exception("Please make sure it is a dir contains epub or is a epub file.")
 
