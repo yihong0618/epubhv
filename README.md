@@ -2,7 +2,7 @@
 
 make your epub books vertical or horizontal.
 
-## [streamlit](https://epubhv.streamlit.app)
+## You can use [streamlit](https://epubhv.streamlit.app)
 
 ## Install
 
