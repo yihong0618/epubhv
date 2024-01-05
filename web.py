@@ -34,9 +34,11 @@ def download_button(data: bytes, download_filename: str) -> None:
     <html>
     <head>
     <title>Start Auto Download file</title>
-    <script src="http://code.jquery.com/jquery-3.2.1.min.js"></script>
     <script>
-    $('<a href="data:text/csv;base64,{b64}" download="{download_filename}">')[0].click()
+        const a = document.createElement('a')
+        a.setAttribute('href', "data:text/csv;base64,{b64}")
+        a.setAttribute('download', "{download_filename}")
+        a.click()
     </script>
     </head>
     </html>
