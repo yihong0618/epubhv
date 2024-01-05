@@ -2,6 +2,8 @@
 
 make your epub books vertical or horizontal.
 
+## [streamlit](https://epubhv.streamlit.app)
+
 ## Install
 
 ```
@@ -78,6 +80,7 @@ pdm run all
 - [furigana4epub](https://github.com/Mumumu4/furigana4epub)
 - [ToJyutping](https://github.com/CanCLID/ToJyutping)
 - [PDM](https://pdm.fming.dev/latest/)
+- [Streamlit](https://streamlit.io/)
 
 ## Similar projects
 
