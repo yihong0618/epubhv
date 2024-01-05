@@ -36,8 +36,8 @@ def download_button(data: bytes, download_filename: str) -> None:
     <title>Start Auto Download file</title>
     <script>
         const a = document.createElement('a')
-        a.href = "data:text/csv;base64,{b64}"
-        a.download = "{download_filename}"
+        a.setAttribute('href', "data:text/csv;base64,{b64}")
+        a.setAttribute('download', "{download_filename}")
         a.click()
     </script>
     </head>
