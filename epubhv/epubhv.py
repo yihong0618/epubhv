@@ -1,6 +1,7 @@
 """
 Follow these steps to change epub books to vertical or horizontal.
 """
+
 import logging
 import os
 import shutil

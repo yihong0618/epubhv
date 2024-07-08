@@ -113,7 +113,10 @@ def test_punctuation():
         "hant",
     )
     res = opencc.OpenCC("s2t").convert(res)  # type: ignore
-    assert res == """「我最贊成羅素先生的一句話：『須知參差多態，乃是幸福的本源。』大多數的參差多態都是敏於思索的人創造出來的。」"""
+    assert (
+        res
+        == """「我最贊成羅素先生的一句話：『須知參差多態，乃是幸福的本源。』大多數的參差多態都是敏於思索的人創造出來的。」"""
+    )
 
     res = punctuation.convert(
         "﹁我最贊成羅素先生的一句話：﹃須知參差多態，乃是幸福的本源。﹄大多數的參差多態都是敏於思索的人創造出來的。﹂",
@@ -122,7 +125,10 @@ def test_punctuation():
         "hans",
     )
     res = opencc.OpenCC("t2s").convert(res)  # type: ignore
-    assert res == """“我最赞成罗素先生的一句话：‘须知参差多态，乃是幸福的本源。’大多数的参差多态都是敏于思索的人创造出来的。”"""
+    assert (
+        res
+        == """“我最赞成罗素先生的一句话：‘须知参差多态，乃是幸福的本源。’大多数的参差多态都是敏于思索的人创造出来的。”"""
+    )
 
     res = punctuation.convert(
         "“我最赞成罗素先生的一句话：‘须知参差多态，乃是幸福的本源。’大多数的参差多态都是敏于思索的人创造出来的。”",
@@ -131,7 +137,10 @@ def test_punctuation():
         "hant",
     )
     res = opencc.OpenCC("s2t").convert(res)  # type: ignore
-    assert res == """「我最贊成羅素先生的一句話：『須知參差多態，乃是幸福的本源。』大多數的參差多態都是敏於思索的人創造出來的。」"""
+    assert (
+        res
+        == """「我最贊成羅素先生的一句話：『須知參差多態，乃是幸福的本源。』大多數的參差多態都是敏於思索的人創造出來的。」"""
+    )
 
     res = punctuation.convert(
         "「我最贊成羅素先生的一句話：『須知參差多態，乃是幸福的本源。』大多數的參差多態都是敏於思索的人創造出來的。」",
@@ -140,4 +149,7 @@ def test_punctuation():
         "hans",
     )
     res = opencc.OpenCC("t2s").convert(res)  # type: ignore
-    assert res == """『我最赞成罗素先生的一句话：「须知参差多态，乃是幸福的本源。」大多数的参差多态都是敏于思索的人创造出来的。』"""
+    assert (
+        res
+        == """『我最赞成罗素先生的一句话：「须知参差多态，乃是幸福的本源。」大多数的参差多态都是敏于思索的人创造出来的。』"""
+    )

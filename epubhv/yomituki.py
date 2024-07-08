@@ -4,6 +4,7 @@ The pinyin is from https://github.com/shotazc/pinyin2epub/blob/master/pinyin2epu
 I made some change
 
 """
+
 # coding: utf-8
 import re
 from itertools import groupby
