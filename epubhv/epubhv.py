@@ -8,7 +8,7 @@ import shutil
 import zipfile
 from collections import Counter, defaultdict
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Union
 
 import cssutils
 import opencc
@@ -110,7 +110,7 @@ class EPUBHV:
         soup: bs = bs(content, "html.parser")
 
         # Find the head section or create if not present
-        head: Optional[Tag | NavigableString] = soup.find("head")
+        head: Optional[Union[Tag, NavigableString]] = soup.find("head")
         if not head or type(head) is NavigableString:
             head = soup.new_tag("head")  # type: ignore
             soup.html.insert(0, head)  # type: ignore
@@ -204,7 +204,7 @@ class EPUBHV:
         soup: bs = load_opf_meta_data(self.opf_file)
         self._make_ruby_language(soup)
         # change it to rtl -> right to left
-        spine: Optional[Tag | NavigableString] = soup.find("spine")
+        spine: Optional[Union[Tag, NavigableString]] = soup.find("spine")
         assert spine is not None
         if spine.attrs.get("page-progression-direction", "") != "rtl":  # type: ignore
             spine.attrs["page-progression-direction"] = "rtl"  # type: ignore
@@ -290,7 +290,7 @@ html {
         soup: bs = load_opf_meta_data(self.opf_file)
         self._make_ruby_language(soup)
         # change it to ltr -> left to right
-        spine: Optional[Tag | NavigableString] = soup.find("spine")
+        spine: Optional[Union[Tag, NavigableString]] = soup.find("spine")
         assert spine is not None
         if spine.attrs.get("page-progression-direction", "") != "ltr":  # type: ignore
             spine.attrs["page-progression-direction"] = "ltr"  # type: ignore
