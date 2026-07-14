@@ -191,6 +191,14 @@ def test_cantonese(tmp_path: Path) -> None:
     assert animal_output.exists()
 
 
+def test_traditional_chinese_ruby(tmp_path: Path) -> None:
+    animal_output = tmp_path / "animal-h-original-ruby.epub"
+    f = EPUBHV(TEST_DIR / "books/animal.epub", need_ruby=True)
+    f.run("to_horizontal", dest=tmp_path)
+    assert f.ruby_language == "zh"
+    assert animal_output.exists()
+
+
 def test_punctuation():
     punctuation = Punctuation()
 

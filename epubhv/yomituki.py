@@ -1,6 +1,6 @@
 """
 This file is copy from https://github.com/Mumumu4/furigana4epub great thanks
-The pinyin is from https://github.com/shotazc/pinyin2epub/blob/master/pinyin2epub.py 
+The pinyin is from https://github.com/shotazc/pinyin2epub/blob/master/pinyin2epub.py
 I made some change
 
 """

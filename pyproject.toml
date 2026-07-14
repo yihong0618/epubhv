@@ -5,21 +5,21 @@ description = "make your epub books vertical or horizontal."
 authors = [{ name = "yihong0618", email = "zouzou0208@gmail.com" }]
 
 dependencies = [
-    "beautifulsoup4~=4.14",
-    "cssutils~=2.11",
+    "beautifulsoup4~=4.15",
+    "cssutils~=2.15",
     "lxml~=6.1",
     "opencc-python-reimplemented~=0.1",
-    "soupsieve~=2.7",
-    "typed-argument-parser~=1.10",
+    "soupsieve~=2.8",
+    "typed-argument-parser~=1.12",
     "jieba~=0.42",
     "pypinyin~=0.55",
     "unidic-lite~=1.0",
-    "fugashi~=1.4",
+    "fugashi~=1.5",
     "langdetect~=1.0",
     "ToJyutping~=3.2",
 ]
 
-requires-python = ">=3.8,!=3.9.7"
+requires-python = ">=3.10"
 readme = "README.md"
 license = { text = "MIT" }
 
@@ -31,7 +31,7 @@ epubhv = "epubhv.cli:main"
 
 [project.optional-dependencies]
 web = [
-    "streamlit~=1.40",
+    "streamlit~=1.59",
 ]
 [build-system]
 requires = ["pdm-backend"]
@@ -39,6 +39,9 @@ build-backend = "pdm.backend"
 
 [tool.pdm.build]
 includes = ["epubhv"]
+
+[tool.black]
+target-version = ["py310"]
 
 [tool.pdm.scripts]
 format = "black ."
@@ -63,10 +66,10 @@ reportMissingTypeStubs = false
 
 [dependency-groups]
 style = [
-    "black~=24.8",
+    "black~=26.5",
 ]
 test = [
-    "pytest~=8.3",
+    "pytest~=9.1",
 ]
 typing = [
     "pyright~=1.1",

@@ -211,7 +211,7 @@ class EPUBHV:
             # WTF sometimes Chinese will detect as ko?
             # TODO change to a better detect
             if language in ["ko", "zh-tw"]:
-                self.ruby_language = "cantonese" if self.cantonese else language
+                self.ruby_language = "cantonese" if self.cantonese else "zh"
                 self.need_ruby = True
             elif language in ["ja"]:
                 self.ruby_language = "ja"
