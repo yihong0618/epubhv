@@ -28,22 +28,20 @@ WRITING_KEY_LIST: List[str] = [
     "-webkit-writing-mode",
     "-epub-writing-mode",
 ]
-V_STYLE_LINE: str = (
-    '<link rel="stylesheet" href="../Style/style.css" type="text/css" />'
-)
-# same as v
-H_STYLE_LINE: str = (
-    '<link rel="stylesheet" href="../Style/style.css" type="text/css" />'
-)
 V_STYLE_LINE_IN_OPF: str = '<meta content="vertical-rl" name="primary-writing-mode"/>'
 H_STYLE_LINE_IN_OPF: str = '<meta content="horizontal-lr" name="primary-writing-mode"/>'
-V_ITEM_TO_ADD_IN_MANIFEST: str = (
-    '<item id="stylesheet" href="Style/style.css" media-type="text/css" />'
+VERTICAL_OVERRIDE_FILENAME: str = "epubhv-vertical.css"
+VERTICAL_OVERRIDE_ITEM: str = (
+    '<item id="epubhv-vertical" href="epubhv-vertical.css" media-type="text/css" />'
 )
-# same as v
-H_ITEM_TO_ADD_IN_MANIFEST: str = (
-    '<item id="stylesheet" href="Style/style.css" media-type="text/css" />'
-)
+VERTICAL_OVERRIDE_CSS: str = """@charset "utf-8";
+html.vrtl,
+html.vrtl body {
+  -epub-writing-mode: vertical-rl !important;
+  writing-mode: vertical-rl !important;
+  -webkit-writing-mode: vertical-rl !important;
+}
+"""
 
 
 def list_all_epub_in_dir(path: Path) -> set[Path]:
@@ -103,20 +101,37 @@ class EPUBHV:
         self.book_path = book_path
 
     @staticmethod
-    def _add_stylesheet_to_html(html_file_path: Path, stylesheet_line: str):
+    def _set_vertical_layout_in_html(
+        html_file_path: Path, stylesheet_path: Path
+    ) -> None:
         with open(html_file_path, "r", encoding="utf-8", errors="ignore") as file:
-            content: str = file.read()
+            soup: bs = bs(file.read(), "html.parser")
 
-        soup: bs = bs(content, "html.parser")
+        html = soup.find("html")
+        if not isinstance(html, Tag):
+            return
 
-        # Find the head section or create if not present
-        head: Optional[Union[Tag, NavigableString]] = soup.find("head")
-        if not head or type(head) is NavigableString:
-            head = soup.new_tag("head")  # type: ignore
-            soup.html.insert(0, head)  # type: ignore
+        classes = list(html.get("class", []))
+        classes = [
+            "vrtl" if class_name == "hltr" else class_name for class_name in classes
+        ]
+        if "vrtl" not in classes:
+            classes.append("vrtl")
+        html["class"] = list(dict.fromkeys(classes))
 
-        # Add the stylesheet line inside the head section
-        head.append(bs(stylesheet_line, "html.parser").contents[0])
+        head = soup.find("head")
+        if not isinstance(head, Tag):
+            head = soup.new_tag("head")
+            html.insert(0, head)
+
+        href = Path(os.path.relpath(stylesheet_path, html_file_path.parent)).as_posix()
+        existing_override = head.find("link", href=href)
+        if existing_override is None:
+            override_link = soup.new_tag("link")
+            override_link["rel"] = "stylesheet"
+            override_link["href"] = href
+            override_link["type"] = "text/css"
+            head.append(override_link)
 
         with open(html_file_path, "w", encoding="utf-8", errors="ignore") as file:
             file.write(str(soup))
@@ -209,11 +224,15 @@ class EPUBHV:
         if spine.attrs.get("page-progression-direction", "") != "rtl":  # type: ignore
             spine.attrs["page-progression-direction"] = "rtl"  # type: ignore
         meta_list: ResultSet[Tag] = soup.find_all("meta")
+        has_primary_writing_mode = False
         for m in meta_list:
             if m.attrs.get("name", "") == "primary-writing-mode":
                 m.attrs["content"] = "vertical-rl"
-        else:
-            meta_list.append(bs(V_STYLE_LINE_IN_OPF, "xml").contents[0])  # type: ignore
+                has_primary_writing_mode = True
+        if not has_primary_writing_mode:
+            metadata = soup.find("metadata")
+            assert isinstance(metadata, Tag)
+            metadata.append(bs(V_STYLE_LINE_IN_OPF, "xml").contents[0])
 
         manifest: Tag = soup.find_all("manifest")[0]
         items = [i for i in manifest.find_all("item")]
@@ -223,59 +242,20 @@ class EPUBHV:
             if i.attrs.get("media-type", "") == "text/css"
         ]
         self.has_css_file = len(self.css_files) > 0
-        if self.has_css_file:
-            css: Path
-            for css in self.css_files:
-                c: CSSParser = CSSParser()
-                p: CSSStyleSheet = c.parseFile(css)  # type: ignore
-                has_html_or_body: bool = False
-                for s in p.cssRules.rulesOfType(1):  # type: ignore
-                    if s.selectorText == "html":  # type: ignore
-                        has_html_or_body = True
-                        for w in WRITING_KEY_LIST:
-                            if w not in s.style.keys():  # type: ignore
-                                # set it to vertical
-                                s.style[w] = "vertical-rl"  # type: ignore
-                if not has_html_or_body:
-                    p.add(  # type: ignore
-                        """
-                        html {
-                            -epub-writing-mode: vertical-rl;
-                            writing-mode: vertical-rl;
-                            -webkit-writing-mode: vertical-rl;
-                        }
-                        """
-                    )
-                css_style = p.cssText  # type: ignore
-                with open(css, "wb") as file:
-                    file.write(css_style)  # type: ignore
-        else:
-            # if we have no css file in the epub than we create one.
-            style_path: Path = Path(self.opf_dir) / Path("Style")
-            if not style_path.exists():
-                os.mkdir(style_path)
-            new_css_file: Path = style_path / Path("style.css")
-            with open(new_css_file, "w", encoding="utf-8", errors="ignore") as file:
-                file.write(
-                    """
-@charset "utf-8";
-html {
-  -epub-writing-mode: vertical-rl;
-  writing-mode: vertical-rl;
-  -webkit-writing-mode: vertical-rl;
-}
-                        """
-                )
-            # add css item to manifest items
-            soup.find_all("manifest")[0].append(
-                bs(V_ITEM_TO_ADD_IN_MANIFEST, "xml").contents[0]
-            )
-            # then we need to change all html files
-            f: Path
-            for f in self.content_files_list:
-                self._add_stylesheet_to_html(
-                    html_file_path=f, stylesheet_line=V_STYLE_LINE
-                )
+
+        # A dedicated last-loaded stylesheet is needed because many EPUBs force
+        # horizontal layout with `!important`, which a normal `html` rule cannot
+        # override. Keep intentional nested horizontal spans untouched by only
+        # targeting the root vertical document and its body.
+        vertical_override = self.opf_dir / VERTICAL_OVERRIDE_FILENAME
+        with open(vertical_override, "w", encoding="utf-8") as file:
+            file.write(VERTICAL_OVERRIDE_CSS)
+
+        if manifest.find("item", id="epubhv-vertical") is None:
+            manifest.append(bs(VERTICAL_OVERRIDE_ITEM, "xml").contents[0])
+
+        for html_file in self.content_files_list:
+            self._set_vertical_layout_in_html(html_file, vertical_override)
         with open(self.opf_file, "w", encoding="utf-8", errors="ignore") as file:
             file.write(str(soup))
 

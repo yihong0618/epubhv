@@ -1,6 +1,7 @@
 from pathlib import Path
 from shutil import rmtree
 from typing import Dict, List
+from zipfile import ZIP_DEFLATED, ZIP_STORED, ZipFile
 
 import opencc
 import pytest
@@ -52,6 +53,73 @@ def test_change_epub_to_vertical(epub: EPUBHV, tmp_path: Path) -> None:
     epub.run(dest=tmp_path)
     assert epub.opf_file == Path(".epub_temp_dir/animal_farm/content.opf")
     assert tmp_path.joinpath("animal_farm-v-original.epub").exists()
+
+
+def test_vertical_conversion_overrides_forced_horizontal_layout(
+    tmp_path: Path,
+) -> None:
+    source = tmp_path / "forced-horizontal.epub"
+    with ZipFile(source, "w") as archive:
+        archive.writestr("mimetype", "application/epub+zip", compress_type=ZIP_STORED)
+        archive.writestr(
+            "META-INF/container.xml",
+            """<?xml version="1.0"?>
+<container xmlns="urn:oasis:names:tc:opendocument:xmlns:container" version="1.0">
+  <rootfiles>
+    <rootfile full-path="EPUB/content.opf" media-type="application/oebps-package+xml"/>
+  </rootfiles>
+</container>""",
+            compress_type=ZIP_DEFLATED,
+        )
+        archive.writestr(
+            "EPUB/content.opf",
+            """<?xml version="1.0" encoding="UTF-8"?>
+<package xmlns="http://www.idpf.org/2007/opf" version="3.0" unique-identifier="id">
+  <metadata xmlns:dc="http://purl.org/dc/elements/1.1/">
+    <dc:identifier id="id">forced-horizontal</dc:identifier>
+    <dc:title>Forced horizontal</dc:title>
+    <dc:language>zh</dc:language>
+  </metadata>
+  <manifest>
+    <item id="chapter" href="chapter.xhtml" media-type="application/xhtml+xml"/>
+    <item id="horizontal" href="horizontal.css" media-type="text/css"/>
+  </manifest>
+  <spine><itemref idref="chapter"/></spine>
+</package>""",
+            compress_type=ZIP_DEFLATED,
+        )
+        archive.writestr(
+            "EPUB/chapter.xhtml",
+            """<html xmlns="http://www.w3.org/1999/xhtml" class="hltr">
+<head><link rel="stylesheet" href="horizontal.css"/></head>
+<body><p>这段文字应该竖排。</p></body>
+</html>""",
+            compress_type=ZIP_DEFLATED,
+        )
+        archive.writestr(
+            "EPUB/horizontal.css",
+            """html, body, .vrtl, .hltr {
+  writing-mode: horizontal-tb !important;
+  -webkit-writing-mode: horizontal-tb !important;
+  -epub-writing-mode: horizontal-tb !important;
+}""",
+            compress_type=ZIP_DEFLATED,
+        )
+
+    output = EPUBHV(source).run("to_vertical", dest=tmp_path)
+
+    with ZipFile(output) as archive:
+        chapter = archive.read("EPUB/chapter.xhtml").decode()
+        override = archive.read("EPUB/epubhv-vertical.css").decode()
+        opf = archive.read("EPUB/content.opf").decode()
+
+    assert 'class="vrtl"' in chapter
+    assert 'class="hltr"' not in chapter
+    assert chapter.rfind("epubhv-vertical.css") > chapter.rfind("horizontal.css")
+    assert "html.vrtl" in override
+    assert "vertical-rl !important" in override
+    assert 'page-progression-direction="rtl"' in opf
+    assert 'content="vertical-rl" name="primary-writing-mode"' in opf
 
 
 def test_find_epub_css_files(tmp_path: Path) -> None:
