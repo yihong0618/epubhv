@@ -8,7 +8,7 @@ import shutil
 import zipfile
 from collections import Counter, defaultdict
 from pathlib import Path
-from typing import Dict, List, Optional, Union
+from typing import Dict, List, Optional, Tuple, Union
 
 import cssutils
 import opencc
@@ -101,23 +101,42 @@ class EPUBHV:
         self.book_path = book_path
 
     @staticmethod
+    def _load_content_document(html_file_path: Path) -> Tuple[bs, Optional[Tag]]:
+        with open(html_file_path, "r", encoding="utf-8", errors="ignore") as file:
+            content = file.read()
+
+        is_xhtml = (
+            html_file_path.suffix.lower() == ".xhtml"
+            or "http://www.w3.org/1999/xhtml" in content
+        )
+        soup: bs = bs(content, "xml" if is_xhtml else "html.parser")
+        html = soup.find("html")
+        return soup, html if isinstance(html, Tag) else None
+
+    @staticmethod
+    def _get_layout_classes(html: Tag) -> List[str]:
+        class_attribute = html.get("class", [])
+        return (
+            class_attribute.split()
+            if isinstance(class_attribute, str)
+            else list(class_attribute)
+        )
+
+    @staticmethod
     def _set_vertical_layout_in_html(
         html_file_path: Path, stylesheet_path: Path
     ) -> None:
-        with open(html_file_path, "r", encoding="utf-8", errors="ignore") as file:
-            soup: bs = bs(file.read(), "html.parser")
-
-        html = soup.find("html")
-        if not isinstance(html, Tag):
+        soup, html = EPUBHV._load_content_document(html_file_path)
+        if html is None:
             return
 
-        classes = list(html.get("class", []))
+        classes = EPUBHV._get_layout_classes(html)
         classes = [
             "vrtl" if class_name == "hltr" else class_name for class_name in classes
         ]
         if "vrtl" not in classes:
             classes.append("vrtl")
-        html["class"] = list(dict.fromkeys(classes))
+        html["class"] = " ".join(dict.fromkeys(classes))
 
         head = soup.find("head")
         if not isinstance(head, Tag):
@@ -132,6 +151,24 @@ class EPUBHV:
             override_link["href"] = href
             override_link["type"] = "text/css"
             head.append(override_link)
+
+        with open(html_file_path, "w", encoding="utf-8", errors="ignore") as file:
+            file.write(str(soup))
+
+    @staticmethod
+    def _restore_horizontal_layout_in_html(html_file_path: Path) -> None:
+        soup, html = EPUBHV._load_content_document(html_file_path)
+        if html is None:
+            return
+
+        classes = EPUBHV._get_layout_classes(html)
+        if "vrtl" not in classes:
+            return
+
+        classes = [
+            "hltr" if class_name == "vrtl" else class_name for class_name in classes
+        ]
+        html["class"] = " ".join(dict.fromkeys(classes))
 
         with open(html_file_path, "w", encoding="utf-8", errors="ignore") as file:
             file.write(str(soup))
@@ -302,6 +339,9 @@ class EPUBHV:
                 css_style = p.cssText  # type: ignore
                 with open(css, "wb") as file:
                     file.write(css_style)  # type: ignore
+
+        for html_file in self.content_files_list:
+            self._restore_horizontal_layout_in_html(html_file)
 
     def convert(self, method: str = "to_vertical") -> None:
         if self.converter is None and not self.need_ruby:

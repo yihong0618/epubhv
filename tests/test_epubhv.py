@@ -92,7 +92,12 @@ def test_vertical_conversion_overrides_forced_horizontal_layout(
             "EPUB/chapter.xhtml",
             """<html xmlns="http://www.w3.org/1999/xhtml" class="hltr">
 <head><link rel="stylesheet" href="horizontal.css"/></head>
-<body><p>这段文字应该竖排。</p></body>
+<body>
+  <p>这段文字应该竖排。</p>
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10" preserveAspectRatio="xMidYMid">
+    <linearGradient id="gradient" gradientUnits="userSpaceOnUse"/>
+  </svg>
+</body>
 </html>""",
             compress_type=ZIP_DEFLATED,
         )
@@ -116,10 +121,25 @@ def test_vertical_conversion_overrides_forced_horizontal_layout(
     assert 'class="vrtl"' in chapter
     assert 'class="hltr"' not in chapter
     assert chapter.rfind("epubhv-vertical.css") > chapter.rfind("horizontal.css")
+    assert 'viewBox="0 0 10 10"' in chapter
+    assert 'preserveAspectRatio="xMidYMid"' in chapter
+    assert "linearGradient" in chapter
+    assert 'gradientUnits="userSpaceOnUse"' in chapter
     assert "html.vrtl" in override
     assert "vertical-rl !important" in override
     assert 'page-progression-direction="rtl"' in opf
     assert 'content="vertical-rl" name="primary-writing-mode"' in opf
+
+
+def test_horizontal_conversion_restores_horizontal_root_class(tmp_path: Path) -> None:
+    vertical = EPUBHV(TEST_DIR / "animal_farm.epub").run("to_vertical", dest=tmp_path)
+    horizontal = EPUBHV(vertical).run("to_horizontal", dest=tmp_path)
+
+    with ZipFile(horizontal) as archive:
+        titlepage = archive.read("titlepage.xhtml").decode()
+
+    assert 'class="hltr"' in titlepage
+    assert 'class="vrtl"' not in titlepage
 
 
 def test_find_epub_css_files(tmp_path: Path) -> None:
