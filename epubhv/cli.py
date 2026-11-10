@@ -129,6 +129,7 @@ tw2t: Traditional Chinese (OpenCC Standard) to Traditional Chinese (Taiwan stand
             epubhv: EPUBHV = EPUBHV(
                 file_path=epub_files,
                 convert_to=options.convert,
+                convert_punctuation=options.punctuation,
                 need_ruby=options.ruby,
                 need_cantonese=options.cantonese,
             )
